@@ -1,0 +1,30 @@
+<head>
+    <title>ProPro</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="span4">Role: Viewer</div>
+            <div class="span4">Search: </div>
+            <div class="span4">{{> userarea}}</div>
+        </div>
+        <div calss="span12">{{> hello}}</div>
+    </div>
+</body>
+
+<template name="hello">
+    <h1>Hello World!</h1>
+    {{greeting}}
+    <input type="button" value="Click" />
+</template>
+
+<template name="userarea">
+    <div>
+    {{#unless user }}
+        User: Anonymous {{loginButtons}}
+    {{else}}
+        User: {{loginButtons}}
+    {{/unless}}
+    </div>
+</template>
