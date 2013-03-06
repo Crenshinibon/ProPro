@@ -15,6 +15,8 @@ if(Meteor.isClient)
     Template.userarea.user = ->
         Meteor.user()
 
+    Template.role.user = ->
+        Meteor.user()
 
 if(Meteor.isServer)
     Meteor.startup( ->

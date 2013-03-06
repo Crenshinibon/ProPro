@@ -1,15 +1,16 @@
 <head>
     <title>ProPro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="span4">Role: Viewer</div>
-            <div class="span4">Search: </div>
-            <div class="span4">{{> userarea}}</div>
-        </div>
-        <div calss="span12">{{> hello}}</div>
+    <div class="container-fluid">
+        <form class="row-fluid navbar-form pull-left">
+            <div class="span3 navbar-text">{{> role}}</div>
+            <div class="offset1 span4">{{> search}} </div>
+            <div class="offset1 span3 navbar-text">{{> userarea}}</div>
+        </form>
+        <div class="row-fluid"><div class="span12">{{> hello}}</div></div>
     </div>
 </body>
 
@@ -20,11 +21,17 @@
 </template>
 
 <template name="userarea">
-    <div>
     {{#unless user }}
         User: Anonymous {{loginButtons}}
     {{else}}
         User: {{loginButtons}}
     {{/unless}}
-    </div>
+</template>
+
+<template name="role">
+    Role: {{#unless user}}Visitor{{else}}<input>{{/unless}}
+</template>
+
+<template name="search">
+    <input type="text" class="search-query" placeholder="Search">
 </template>
