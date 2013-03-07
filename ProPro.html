@@ -6,32 +6,42 @@
 <body>
     <div class="container-fluid">
         <form class="row-fluid navbar-form pull-left">
-            <div class="span3 navbar-text">{{> role}}</div>
-            <div class="offset1 span4">{{> search}} </div>
-            <div class="offset1 span3 navbar-text">{{> userarea}}</div>
+            {{> role}}
+            {{> search}}
+            {{> userarea}}
         </form>
-        <div class="row-fluid"><div class="span12">{{> hello}}</div></div>
+        {{> categoriesArea}}
     </div>
 </body>
 
-<template name="hello">
-    <h1>Hello World!</h1>
-    {{greeting}}
-    <input type="button" value="Click" />
+<template name="categoriesArea">
+    <div class="row-fluid">
+        <div class="span12">
+            {{#each category}}
+                {{> category this}}
+            {{/each}}
+        </div>
+    </div>
 </template>
 
 <template name="userarea">
+    <div class="offset1 span3 navbar-text">
     {{#unless user }}
-        User: Anonymous {{loginButtons}}
+        User: Anonymous {{loginButtons align="right"}}
     {{else}}
         User: {{loginButtons}}
     {{/unless}}
+    </div>
 </template>
 
 <template name="role">
-    Role: {{#unless user}}Visitor{{else}}<input>{{/unless}}
+    <div class="span3 navbar-text">
+        Role: {{#unless user}}Visitor{{else}}<input>{{/unless}}
+    </div>
 </template>
 
 <template name="search">
-    <input type="text" class="search-query" placeholder="Search">
+    <div class="offset1 span4">
+        <input type="text" class="search-query" placeholder="Search">
+    </div>
 </template>

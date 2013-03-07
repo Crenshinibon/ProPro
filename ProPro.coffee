@@ -3,20 +3,23 @@ if(Meteor.isClient)
         passwordSignupFields: 'USERNAME_AND_EMAIL'
         )
 
-    Template.hello.greeting = -> 
-        "Welcome to ProPro."
-
-    Template.hello.events(
-        'click input' : ->
-            # template data, if any, is available in 'this'
-            if(console)
-                console.log("You pressed the button"))
+#    Template.hello.greeting = -> 
+#        "Welcome to ProPro."
+#
+#    Template.hello.events(
+#        'click input' : ->
+#            # template data, if any, is available in 'this'
+#            if(console)
+#                console.log("You pressed the button"))
 
     Template.userarea.user = ->
         Meteor.user()
 
     Template.role.user = ->
         Meteor.user()
+
+    Template.categoriesArea.category = ->
+        ['Examination','Drafts','Approved','Declined']
 
 if(Meteor.isServer)
     Meteor.startup( ->
