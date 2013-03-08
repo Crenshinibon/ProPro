@@ -18,7 +18,7 @@
     <div class="row-fluid">
         <div class="span12">
             {{#each cats}}
-                <p>{{> category this}}</p>
+                <p>{{> category}}</p>
             {{/each}}
         </div>
     </div>
@@ -36,7 +36,7 @@
 
 <template name="role">
     <div class="span3 navbar-text">
-        Role: {{#unless user}}Visitor{{else}}<input>{{/unless}}
+        Role: {{currentUserRole}}
     </div>
 </template>
 

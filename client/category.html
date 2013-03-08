@@ -3,7 +3,7 @@
         <div class="offset4 span4">
             <div class="container-fluid category-box">
                 <div class="row-fluid">
-                    <div class="offset4 span4 category-headline">{{desc}}</div>
+                    <div class="offset4 span4 category-headline" >{{desc}}</div>
                     <div class="offset2 span2 pull-right">
                         <a href="#">{{#if open}}close{{else}}open{{/if}}</a>
                     </div>
@@ -11,4 +11,9 @@
             </div>
         </div>
     </div>
+    {{#if open}}
+        {{#each projects}}
+        {{> project}}
+        {{/each}}
+    {{/if}}
 </template>
