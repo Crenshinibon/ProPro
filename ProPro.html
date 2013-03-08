@@ -5,27 +5,27 @@
 
 <body>
     <div class="container-fluid">
-        <form class="row-fluid navbar-form pull-left">
+        <form class="row-fluid navbar-form pull-left header">
             {{> role}}
             {{> search}}
             {{> userarea}}
         </form>
-        {{> categoriesArea}}
+        {{> catArea}}
     </div>
 </body>
 
-<template name="categoriesArea">
+<template name="catArea">
     <div class="row-fluid">
         <div class="span12">
-            {{#each category}}
-                {{> category this}}
+            {{#each cats}}
+                <p>{{> category this}}</p>
             {{/each}}
         </div>
     </div>
 </template>
 
 <template name="userarea">
-    <div class="offset1 span3 navbar-text">
+    <div class="offset1 span3 navbar-text align-right">
     {{#unless user }}
         User: Anonymous {{loginButtons align="right"}}
     {{else}}
@@ -41,7 +41,7 @@
 </template>
 
 <template name="search">
-    <div class="offset1 span4">
+    <div class="offset1 span4 align-center">
         <input type="text" class="search-query" placeholder="Search">
     </div>
 </template>

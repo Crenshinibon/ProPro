@@ -1,4 +1,37 @@
+.rounded-corners (@radius: 5px) {
+    -webkit-border-radius: @radius;
+    -moz-border-radius: @radius;
+    -ms-border-radius: @radius;
+    -o-border-radius: @radius;
+    border-radius: @radius;
+}
+
+.align-right{
+    text-align: right;
+}
+
+.align-center{
+    text-align: center;
+}
+
+.header{
+    .rounded-corners();
+    background-color: lightgrey;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
 .category{
+    margin-top: 20px;
+}
+
+.category-box{
+    .rounded-corners(10px);
+    padding: 5px;
+    border: solid 1px darkgrey;
+}
+
+.category-headline{
     text-align: center;
     font-weight: bold;
 }
