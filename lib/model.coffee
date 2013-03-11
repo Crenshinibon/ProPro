@@ -103,9 +103,16 @@ unless UserRoles
     UserRoles = new Meteor.Collection("userroles")
     UserRoles.remove({})
 
-unless CurrentUserRoles
-    CurrentUserRoles = new Meteor.Collection("currentuserroles")
-    CurrentUserRoles.remove({})
+
+unless UserStates
+    UserStates = new Meteor.Collection("userstates")
+    UserStates.remove({})
+
+defaultUserState = (user) ->
+    lu: user
+    openProjects: []
+    selectedRole: "visitor"
+
 
 unless Projects
     Projects = new Meteor.Collection("projects")

@@ -1,18 +1,18 @@
 userRoles = (user) ->
-    unless UserRoles.find({lu: user}.count() == 0)
+###    unless UserRoles.find({lu: user}).fetch().size == 0
         UserRoles.insert(
-            user: user
+            lu: user
             role: "visitor"
         )
     ur.role for ur in UserRoles.find({lu: user}).fetch()
-
+###
 currentUserRole = (user) ->
-    cur = CurrentUserRoles.findOne({lu: user})
-    #console.log(cur)
-    #unless CurrentUserRoles.findOne({lu: user})
-    #    CurrentUserRoles.insert(
-    #        user: user
-    #        role: "visitor"
-    #    )
-    #cur = CurrentUserRoles.findOne({lu: user})
-    "visitor"
+    us = getUserState(user)
+    us.selectedRole
+
+
+getUserState = (user) ->
+    cur = UserStates.findOne({lu: user})
+    unless cur
+        UserStates.insert(defaultUserState(user))
+    UserStates.findOne({lu: user})

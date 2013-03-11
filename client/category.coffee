@@ -4,7 +4,7 @@ Template.category.desc = ->
 
 Template.category.projects = ->
     rc = Categories.findOne({lu: this.cat})
-    if(currentUserRole(Meteor.user()) == "requestor")
+    if(Meteor.user() and currentUserRole(Meteor.user()) is "requestor")
         #only personal projects
         res = Projects.find(
             visibility: {$in: rc.visibility}
@@ -12,7 +12,7 @@ Template.category.projects = ->
             owner: Meteor.user()
             ).fetch()
     else
-        #all mathing projects
+        #all matching projects
         res = Projects.find(
             visibility: {$in: rc.visibility}
             state: {$in: rc.states}

@@ -5,7 +5,7 @@
 
 <body>
     <div class="container-fluid">
-        <form class="row-fluid navbar-form pull-left header">
+        <form class="row-fluid navbar-form header">
             {{> role}}
             {{> search}}
             {{> userarea}}
@@ -15,13 +15,9 @@
 </body>
 
 <template name="catArea">
-    <div class="row-fluid">
-        <div class="span12">
-            {{#each cats}}
-                <p>{{> category}}</p>
-            {{/each}}
-        </div>
-    </div>
+    {{#each cats}}
+        {{> category}}
+    {{/each}}
 </template>
 
 <template name="userarea">
@@ -35,8 +31,15 @@
 </template>
 
 <template name="role">
-    <div class="span3 navbar-text">
-        Role: {{currentUserRole}}
+    <div class="span3">
+        <div class="row-fluid">
+            <div class="span3 navbar-text">Role:</div>
+            <select class="span9 navbar-input">
+                {{#each userRoles}}
+                    <option {{selectedRole this}}>{{descFor this}}</option>
+                {{/each}}
+            </select>
+        </div>
     </div>
 </template>
 
