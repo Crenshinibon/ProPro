@@ -137,4 +137,7 @@ unless Projects
         created: new Date
         lastChange: new Date
     )
-    
+
+unless ProjectTypes
+    ProjectTypes = new Meteor.Collection("projecttypes")
+    ProjectTypes.remove({})
