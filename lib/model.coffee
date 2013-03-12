@@ -140,4 +140,3 @@ unless Projects
 
 unless ProjectTypes
     ProjectTypes = new Meteor.Collection("projecttypes")
-    ProjectTypes.remove({})

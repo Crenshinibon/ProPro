@@ -1,27 +1,39 @@
-
-initProjectTypes = (callback) ->
-    result = {}
+initProjectTypes = ->
+    #cleanup
+    fut = new Future()
 
     con = getConnection()
     con.on('connect', (err) ->
+        if(err)
+            console.log('connect error: ' + err)
         executeStatement()
     )
 
-    sql = 'select structure_code, description from structure where structure_name = \'Wbs22\' and depth = 2'
+    sql = 'select structure_code, description from structure
+    where structure_name = \'Wbs22\' and depth = 2
+    and structure_code not in (\'188\',\'189\',\'836\')'
+
     executeStatement = ->
+        result = []
         req = new tedious.Request(sql, (err, rowCount) ->
             if(err)
                 console.log(err)
             else
-                console.log('Fetched ' + rowCount + ' project types.')
+                fut.ret(result)
         )
         req.on('row', (columns) ->
-            result[columns.structure_code.value] = columns.description.value
+            result.push(
+                structureCode: columns.structure_code.value
+                description: columns.description.value
+            )
         )
-        req.on('done', (rowCount, more) ->
-            console.log('done called')
-            callback(result)
-        )
-        
         con.execSql(req)
-    
+
+    result = fut.wait()
+    ProjectTypes.remove({})
+                        
+    result.forEach (e) ->
+        ProjectTypes.insert(
+            lu: e.structureCode
+            desc: e.description
+        )

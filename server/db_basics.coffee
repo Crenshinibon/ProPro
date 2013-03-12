@@ -1,16 +1,11 @@
-tedious = __meteor_bootstrap__.require('tedious')
+databaseConf =
+    server: "wiv100a041"
+    userName: "user"
+    password: "password"
 
-TEST = true
 
-server = ->
-    if(TEST)
-        'wiv100a041'
-    else
-        'win100a105'
+tedious = __meteor_bootstrap__.require("tedious")
+Future = __meteor_bootstrap__.require("fibers/future")
 
 getConnection = ->
-    new tedious.Connection(
-        userName: 'ip'
-        password: 'planview'
-        server: 'wiv100a041'
-    )
+    new tedious.Connection(databaseConf)
