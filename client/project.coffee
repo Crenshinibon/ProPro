@@ -7,3 +7,5 @@ Template.project.open = ->
             false
     else
         false
+
+
