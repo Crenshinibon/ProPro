@@ -120,6 +120,7 @@ unless Projects
     
     Projects.insert(
         title: "Special Project"
+        type: "1235"
         state: "draft"
         visibility: "public"
         owner: "dirk"
@@ -130,6 +131,7 @@ unless Projects
     
     Projects.insert(
         title: "Important Project"
+        type: "1234"
         state: "examination"
         visibility: "public"
         owner: "dirk"

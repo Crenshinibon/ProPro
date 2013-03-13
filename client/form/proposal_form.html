@@ -5,11 +5,11 @@
 </template>
 
 <template name="project_type">
-    <label class="span4 align-right">Projekttyp:</label>
+    <label class="span4 align-right">Project type:</label>
     <div class="span8">
     <select class="input-xlarge">
         {{#each getProjectTypes}}
-            <option {{isSelectedProjectType ..}}>{{this}}</option>
+            <option {{isSelectedProjectType this ..}}>{{this.desc}}</option>
         {{/each}}
     </select>
     </div>

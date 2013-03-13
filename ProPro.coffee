@@ -36,8 +36,6 @@ if(Meteor.isClient)
 
 if(Meteor.isServer)
     Meteor.startup( ->
-        initProjectTypes( (result) ->
-            console.log(result)
-        )
+        initProjectTypes()
     )
 
