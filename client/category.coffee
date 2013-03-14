@@ -10,7 +10,7 @@ Template.category.proposals = ->
         Proposals.find(
             visibility: {$in: rc.visibility}
             state: {$in: rc.states}
-            owner: Meteor.user()
+            owner: Meteor.user().username
             ).fetch()
     else
         #all matching proposals
@@ -18,4 +18,4 @@ Template.category.proposals = ->
             visibility: {$in: rc.visibility}
             state: {$in: rc.states}
             ).fetch()
-    
+        

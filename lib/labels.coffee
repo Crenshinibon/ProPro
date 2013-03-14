@@ -1,1 +1,2 @@
-nothing_selected = "None"
+labels =
+    nothing_selected: "None"

@@ -10,10 +10,12 @@ if(Meteor.isClient)
         Meteor.user()
         
     Template.role.userRoles = ->
-        #if(Meteor.user())
-        #    roles = getUserRoles(Meteor.user())
-        #    console.log(roles)
-        ["visitor","requestor","decision_maker"]
+        if(Meteor.user())
+            us = getUserRoles(Meteor.user())
+            e.role for e in us
+        else
+            ["visitor"]
+        #["visitor","requestor","decision_maker"]
         
     Template.role.descFor = (role) ->
         r = Roles.findOne({lu: role})
@@ -34,11 +36,4 @@ if(Meteor.isClient)
         else
             r = Roles.findOne({lu: "visitor"})
             if r then r.cats else NE_ROLE.cats
-
-
-
-if(Meteor.isServer)
-    Meteor.startup( ->
-        initProjectTypes()
-    )
 

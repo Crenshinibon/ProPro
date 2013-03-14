@@ -1,18 +1,20 @@
 getUserRoles = (user) ->
-###    unless UserRoles.find({lu: user}).fetch().size == 0
-        UserRoles.insert(
-            lu: user
-            role: "visitor"
-        )
-    ur.role for ur in UserRoles.find({lu: user}).fetch()
-###
+    c = UserRoles.find({lu: user.username})
+    if c.count() == 0
+        defaultUserRoles(user.username)
+    else
+        c.fetch()
+
 getCurrentUserRole = (user) ->
     us = getUserState(user)
     us.selectedRole
 
 
 getUserState = (user) ->
-    cur = UserStates.findOne({lu: user})
+    cur = UserStates.findOne({lu: user.username})
     unless cur
-        UserStates.insert(defaultUserState(user))
-    UserStates.findOne({lu: user})
+        dus = defaultUserState(user.username)
+        UserStates.insert(dus)
+        dus
+    else
+        cur

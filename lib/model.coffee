@@ -25,12 +25,15 @@ NE_CATEGORY =
 unless UserRoles
     UserRoles = new Meteor.Collection("userroles")
 
+defaultUserRoles = (user) -> 
+    [{lu: user, role: "visitor"},{lu: user, role: "requestor"}] 
+
 unless UserStates
     UserStates = new Meteor.Collection("userstates")
 
 defaultUserState = (user) ->
     lu: user
-    openProjects: []
+    openProposals: []
     selectedRole: "visitor"
 
 unless Proposals
@@ -51,11 +54,12 @@ if(Meteor.isServer)
         Categories.remove({})
         setupCategories()
         
+        initProjectTypes()
+        
         if(conf.testing)
             cleanupVariableData()
             insertDummyProposals()
-            
-
+        
 insertDummyProposals = ->
     Proposals.insert(
         title: "Special Project"

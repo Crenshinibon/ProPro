@@ -4,7 +4,7 @@ Template.project_type.getProjectTypes = ->
     res = ProjectTypes.find().fetch()
     res.push(
         lu: nothing_lu
-        desc: nothing_selected)
+        desc: labels.nothing_selected)
     res.reverse()
     res
 
