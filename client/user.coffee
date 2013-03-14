@@ -1,4 +1,4 @@
-userRoles = (user) ->
+getUserRoles = (user) ->
 ###    unless UserRoles.find({lu: user}).fetch().size == 0
         UserRoles.insert(
             lu: user
@@ -6,7 +6,7 @@ userRoles = (user) ->
         )
     ur.role for ur in UserRoles.find({lu: user}).fetch()
 ###
-currentUserRole = (user) ->
+getCurrentUserRole = (user) ->
     us = getUserState(user)
     us.selectedRole
 

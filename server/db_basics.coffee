@@ -1,7 +1,7 @@
 databaseConf =
-    server: db_server
-    userName: db_user
-    password: db_password
+    server: conf.db_server
+    userName: conf.db_user
+    password: conf.db_password
 
 
 tedious = __meteor_bootstrap__.require("tedious")

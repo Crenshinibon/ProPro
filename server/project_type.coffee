@@ -1,5 +1,5 @@
 initProjectTypes = ->
-    unless mockdata
+    unless conf.mockdata
         fut = new Future()
 
         con = getConnection()

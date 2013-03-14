@@ -11,16 +11,17 @@ if(Meteor.isClient)
         
     Template.role.userRoles = ->
         #if(Meteor.user())
-        #    roles = userRoles(Meteor.user())
+        #    roles = getUserRoles(Meteor.user())
         #    console.log(roles)
         ["visitor","requestor","decision_maker"]
         
     Template.role.descFor = (role) ->
-        Roles.findOne({lu: role}).desc
+        r = Roles.findOne({lu: role})
+        if r then r.desc else NE_ROLE.desc
     
     Template.role.selectedRole = (role)->
         if(Meteor.user())
-            urole = currentUserRole(Meteor.user())
+            urole = getCurrentUserRole(Meteor.user())
             if(urole is role)
                 "selected"
         else
@@ -28,9 +29,11 @@ if(Meteor.isClient)
     
     Template.catArea.cats = ->
         if(Meteor.user())
-            Roles.findOne({lu: currentUserRole(Meteor.user())}).cats
+            cu = getCurrentUserRole(Meteor.user())
+            Roles.findOne({lu: cu}).cats
         else
-            Roles.findOne({lu: "visitor"}).cats
+            r = Roles.findOne({lu: "visitor"})
+            if r then r.cats else NE_ROLE.cats
 
 
 
