@@ -9,6 +9,10 @@ getCurrentUserRole = (user) ->
     us = getUserState(user)
     us.selectedRole
 
+setCurrentUserRoleByDesc = (desc, user) ->
+    role = Roles.findOne({desc: desc})
+    cur = getUserState(user)
+    UserStates.update({_id: cur._id},{$set: {selectedRole: role.lu}})
 
 getUserState = (user) ->
     cur = UserStates.findOne({lu: user.username})

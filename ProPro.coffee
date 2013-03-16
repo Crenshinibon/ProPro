@@ -29,6 +29,11 @@ if(Meteor.isClient)
         else
             ""
     
+    Template.role.events(
+            'change select': (event) ->
+                setCurrentUserRoleByDesc(event.target.value, Meteor.user())
+    )
+    
     Template.catArea.cats = ->
         if(Meteor.user())
             cu = getCurrentUserRole(Meteor.user())
