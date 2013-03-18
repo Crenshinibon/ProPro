@@ -6,11 +6,11 @@ Template.category.proposals = ->
     rc = Categories.findOne({lu: this.cat})
     unless rc then rc = NE_CATEGORY
     if(Meteor.user() and getCurrentUserRole(Meteor.user()) is "requestor")
-        #only personal proposals
+        #only proposals whos author you are
         Proposals.find(
             visibility: {$in: rc.visibility}
             state: {$in: rc.states}
-            owner: Meteor.user().username
+            authors: Meteor.user().username
             ).fetch()
     else
         #all matching proposals

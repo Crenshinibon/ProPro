@@ -5,11 +5,11 @@
 
 <body>
     <div class="container-fluid">
-        <form class="row-fluid navbar-form header">
+        <div class="row-fluid navbar-form header">
             {{> role}}
             {{> search}}
             {{> userarea}}
-        </form>
+        </div>
         {{> catArea}}
     </div>
 </body>
@@ -36,7 +36,7 @@
             <div class="span3 navbar-text">Role:</div>
             <select class="span9 navbar-input">
                 {{#each userRoles}}
-                    <option {{selectedRole this}}>{{descFor this}}</option>
+                    <option value="{{lu}}" {{selectedRole}}>{{desc}}</option>
                 {{/each}}
             </select>
         </div>

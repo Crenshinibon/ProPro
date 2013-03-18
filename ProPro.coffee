@@ -1,7 +1,19 @@
 if(Meteor.isClient)
+    Handlebars.registerHelper("label", (lu) ->
+        labels[lu]
+    )
+        
+    Handlebars.registerHelper("isEditable", () ->
+        Meteor.user() and allowedToEdit(Meteor.user(), this)
+    )
+    
+    Handlebars.registerHelper("isEditing", (modelAttr) ->
+        Meteor.user() and getUserState(Meteor.user()).editing is modelAttr
+    )
+    
     Accounts.ui.config(
         passwordSignupFields: 'USERNAME_AND_EMAIL'
-        )
+    )
 
     Template.userarea.user = ->
         Meteor.user()
@@ -11,27 +23,22 @@ if(Meteor.isClient)
         
     Template.role.userRoles = ->
         if(Meteor.user())
-            us = getUserRoles(Meteor.user())
-            e.role for e in us
+            roles = (r.role for r in getUserRoles(Meteor.user()))
+            Roles.find({lu: {$in: roles}}).fetch()
         else
-            ["visitor"]
-        #["visitor","requestor","decision_maker"]
-        
-    Template.role.descFor = (role) ->
-        r = Roles.findOne({lu: role})
-        if r then r.desc else NE_ROLE.desc
+            Roles.findOne({lu: "visitor"})
     
-    Template.role.selectedRole = (role)->
+    Template.role.selectedRole = ->
         if(Meteor.user())
             urole = getCurrentUserRole(Meteor.user())
-            if(urole is role)
+            if(urole is this.lu)
                 "selected"
         else
             ""
-    
+            
     Template.role.events(
-            'change select': (event) ->
-                setCurrentUserRoleByDesc(event.target.value, Meteor.user())
+            'change select': (e) ->
+                setCurrentUserRole(Meteor.user(), e.target.value)
     )
     
     Template.catArea.cats = ->
@@ -41,4 +48,9 @@ if(Meteor.isClient)
         else
             r = Roles.findOne({lu: "visitor"})
             if r then r.cats else NE_ROLE.cats
+            
+    Template.search.events(
+        'submit form': ->
+            false
+    )
 

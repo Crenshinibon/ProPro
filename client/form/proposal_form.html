@@ -1,16 +1,35 @@
 <template name="proposal_form">
     <form class="row-fluid proposal-body">
-        {{> project_type}}
+        {{#if showDblClickNotice}}
+            <div class="row-fluid"><div class="span6 alert alert-info">{{label "double_click_to_edit_notice"}}<button name="dblclick" type="button" class="close" data-dismiss="alert">&times;</button></div></div>
+        {{/if}}
+        <div class="row-fluid">{{> title}}</div>
+        <div class="row-fluid">{{> project_type}}</div>
     </form>
 </template>
 
+<template name="title">
+    <label class="span4 align-right">{{label "title"}}:</label>
+    <div class="span8 editable-content">
+        {{#if isEditing "title"}}
+            <input id="{{_id}}-title_input" type="text" class="input-xlarge" autofocus="autofocus" value="{{title}}">
+        {{else}}
+            {{title}}
+        {{/if}}
+    </div>
+</template>
+
 <template name="project_type">
-    <label class="span4 align-right">Project type:</label>
-    <div class="span8">
-    <select class="input-xlarge">
-        {{#each getProjectTypes}}
-            <option {{isSelectedProjectType this ..}}>{{this.desc}}</option>
-        {{/each}}
-    </select>
+    <label class="span4 align-right">{{label "project_type"}}:</label>
+    <div class="span8 editable-content">
+        {{#if isEditing "type"}}
+            <select class="input-xlarge" autofocus="autofocus">
+                {{#each getProjectTypes}}
+                    <option value="{{this.lu}}" {{isSelectedProjectType this ..}}>{{this.desc}}</option>
+                {{/each}}
+            </select>
+        {{else}}
+            {{getActualProjectType}}
+        {{/if}}
     </div>
 </template>

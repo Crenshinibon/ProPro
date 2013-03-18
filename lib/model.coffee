@@ -12,6 +12,8 @@ unless States
 NE_STATE =
     lu: "not_existing"
     desc: "not existing"
+    
+editableStates = ['draft','rejected']
 
 unless Categories
     Categories = new Meteor.Collection("categories")
@@ -26,7 +28,9 @@ unless UserRoles
     UserRoles = new Meteor.Collection("userroles")
 
 defaultUserRoles = (user) -> 
-    [{lu: user, role: "visitor"},{lu: user, role: "requestor"}] 
+    r= [{lu: user, role: "visitor"},{lu: user, role: "requestor"}]
+    UserRoles.insert(r)
+    r
 
 unless UserStates
     UserStates = new Meteor.Collection("userstates")
@@ -34,6 +38,8 @@ unless UserStates
 defaultUserState = (user) ->
     lu: user
     openProposals: []
+    closedNotices: []
+    editing: ""
     selectedRole: "visitor"
 
 unless Proposals
@@ -66,8 +72,9 @@ insertDummyProposals = ->
         type: "1235"
         state: "draft"
         visibility: "public"
-        owner: "dirk"
         rejectCount: 0
+        authors: ["dirk"]
+        creator: "dirk"
         created: new Date
         lastChange: new Date
     )
@@ -77,8 +84,9 @@ insertDummyProposals = ->
         type: "1234"
         state: "examination"
         visibility: "public"
-        owner: "dirk"
         rejectCount: 0
+        authors: ["dirk"]
+        creator: "dirk"
         created: new Date
         lastChange: new Date
     )
@@ -129,25 +137,25 @@ setupCategories = ->
 setupStates = ->
     States.insert(
         lu: "draft"
-        desc: "Draft"
+        desc: labels.state_draft
     )
     States.insert(
         lu: "examination"
-        desc: "Examination"
+        desc: labels.state_examination
     )
     States.insert(
         lu: "rejected"
-        desc: "Rejected"
+        desc: labels.state_rejected
     )
     States.insert(
         lu: "approved"
-        desc: "Approved"
+        desc: labels.state_approved
     )
     States.insert(
         lu: "declined"
-        desc: "Declined"
+        desc: labels.state_declined
     )
-    
+
 setupRoles = ->
     Roles.insert(
         lu: "visitor"
@@ -176,5 +184,10 @@ setupRoles = ->
             {cat: "drafts", open: false}
             {cat: "declined", open: false}
             {cat: "approved", open: false}]
+    )
+    Roles.insert(
+        lu: "admin"
+        desc: "Administrator"
+        cats: []
     )
     
