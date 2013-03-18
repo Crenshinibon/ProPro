@@ -9,7 +9,9 @@
                 <a href="#">{{#if open}}close{{else}}open{{/if}}</a>
             </div>
         </div>
-        {{> proposal_form}}
+        {{#if open}}
+            {{> proposal_form}}
+        {{/if}}
     </div>
 </template>
 

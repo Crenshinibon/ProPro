@@ -14,27 +14,24 @@ if(Meteor.isClient)
     Accounts.ui.config(
         passwordSignupFields: 'USERNAME_AND_EMAIL'
     )
-
-    Template.userarea.user = ->
-        Meteor.user()
-
-    Template.role.user = ->
-        Meteor.user()
+    
         
     Template.role.userRoles = ->
-        if(Meteor.user())
-            roles = (r.role for r in getUserRoles(Meteor.user()))
+        user = Meteor.user()
+        if(user)
+            roles = (r.role for r in getUserRoles(user))
             Roles.find({lu: {$in: roles}}).fetch()
         else
-            Roles.findOne({lu: "visitor"})
+            Roles.find({lu: "visitor"}).fetch()
     
     Template.role.selectedRole = ->
-        if(Meteor.user())
-            urole = getCurrentUserRole(Meteor.user())
+        user = Meteor.user()
+        if(user)
+            urole = getCurrentUserRole(user)
             if(urole is this.lu)
                 "selected"
         else
-            ""
+            "selected"
             
     Template.role.events(
             'change select': (e) ->
@@ -42,15 +39,8 @@ if(Meteor.isClient)
     )
     
     Template.catArea.cats = ->
-        if(Meteor.user())
-            cu = getCurrentUserRole(Meteor.user())
-            Roles.findOne({lu: cu}).cats
-        else
-            r = Roles.findOne({lu: "visitor"})
-            if r then r.cats else NE_ROLE.cats
-            
-    Template.search.events(
-        'submit form': ->
-            false
-    )
-
+        user = Meteor.user()
+        cu = getCurrentUserRole(Meteor.user())
+        r = Roles.findOne({lu: cu})
+        if(r)
+            Categories.find({lu: {$in: r.cats}}).fetch()

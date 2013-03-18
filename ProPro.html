@@ -22,7 +22,7 @@
 
 <template name="userarea">
     <div class="offset1 span3 navbar-text align-right">
-    {{#unless user }}
+    {{#unless currentUser }}
         User: Anonymous {{loginButtons align="right"}}
     {{else}}
         User: {{loginButtons align="right"}}

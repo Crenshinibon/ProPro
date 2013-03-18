@@ -11,26 +11,38 @@ userHasRole = (user, lu) ->
 getCurrentUserRole = (user) ->
     us = getUserState(user)
     us.selectedRole
-
+    
 setCurrentUserRole = (user, lu) ->
     us = getUserState(user)
-    UserStates.update({_id: us._id},{$set: {selectedRole: lu}})
+    if(user)
+        col = UserStates
+    else
+        col = LocalStates
+    col.update({_id: us._id},{$set: {selectedRole: lu}})
 
 getUserState = (user) ->
-    cur = UserStates.findOne({lu: user.username})
-    unless cur
-        dus = defaultUserState(user.username)
-        UserStates.insert(dus)
-        dus
+    if(user)
+        cur = UserStates.findOne({lu: user.username})
+        unless cur
+            UserStates.insert(defaultUserState(user.username))
+        UserStates.findOne({lu: user.username})
     else
-        cur
+        LocalStates.findOne({lu: "anon"})
+        
 
 updateEditState = (user, value) ->
     us = getUserState(user)
-    UserStates.update({_id: us._id}, {$set: {editing: value}})
+    if(user)
+        col = UserStates
+    else
+        col = LocalStates
+    col.update({_id: us._id}, {$set: {editing: value}})
+    
     
 allowedToEdit = (user, proposal) ->
-    if (user.username in proposal.authors and proposal.state in editableStates)
+    if (not user)
+        no
+    else if (user.username in proposal.authors and proposal.state in editableStates)
         yes
     else if (userHasRole(user, 'admin'))
         yes
@@ -39,7 +51,11 @@ allowedToEdit = (user, proposal) ->
         
 userClosesNotice = (user, notice) ->
     us = getUserState(user)
-    UserStates.update({_id: us._id}, {$push: {closedNotices: notice}})
+    if(user)
+        col = UserStates
+    else
+        col = LocalStates
+    col.update({_id: us._id}, {$push: {closedNotices: notice}})
     yes
         
 userHasClosedNotice = (user, notice) ->

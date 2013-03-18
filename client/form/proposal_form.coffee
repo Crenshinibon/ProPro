@@ -4,9 +4,12 @@ editableEventMap = (updateEvent, tag, modelAttr, actionFun) ->
     map["#{updateEvent} #{tag}"] = (e) ->
         actionFun(this, event.target.value)
     map['dblclick'] = (e) ->
+        e.preventDefault()
         e.stopPropagation()
         if(allowedToEdit(Meteor.user(), this))
             updateEditState(Meteor.user(), modelAttr)
+        else
+            showMessage(labels.not_allowed_to_edit_message)
     map["blur #{tag}"] = (e) ->
         updateEditState(Meteor.user(), '')
     map
@@ -16,13 +19,23 @@ blurOnEnter = () ->
         if(e.which is 13)
             updateEditState(Meteor.user(), '')
 
+showMessage = (message) ->
+    $('#message_block_content').text(message)
+    $('#message_block').fadeIn()
+    Meteor.setTimeout(hideMessageBlock,20000)
+
+hideMessageBlock = ->
+    $('#message_block').fadeOut('slow')
+
 nothing_lu = 'nothing_selected'
 
 ###Proposal form###
 Template.proposal_form.showDblClickNotice = () ->
-    Meteor.user() and 
-    allowedToEdit(Meteor.user(), this) and not 
-    userHasClosedNotice(Meteor.user(),'dblclick')
+    user = Meteor.user()
+    
+    user and 
+    allowedToEdit(user, this) and not 
+    userHasClosedNotice(user,'dblclick')
 
 Template.proposal_form.events(
     'submit form': ->
