@@ -1,7 +1,7 @@
 getUserRoles = (user) ->
     c = UserRoles.find({lu: user.username})
     if c.count() == 0
-        defaultUserRoles(user.username)
+        model.defaultUserRoles(user.username)
     else
         c.fetch()
 
@@ -24,7 +24,7 @@ getUserState = (user) ->
     if(user)
         cur = UserStates.findOne({lu: user.username})
         unless cur
-            UserStates.insert(defaultUserState(user.username))
+            UserStates.insert(model.defaultUserState(user.username))
         UserStates.findOne({lu: user.username})
     else
         LocalStates.findOne({lu: "anon"})
@@ -42,7 +42,7 @@ updateEditState = (user, value) ->
 allowedToEdit = (user, proposal) ->
     if (not user)
         no
-    else if (user.username in proposal.authors and proposal.state in editableStates)
+    else if (user.username in proposal.authors and proposal.state in model.editableStates)
         yes
     else if (userHasRole(user, 'admin'))
         yes

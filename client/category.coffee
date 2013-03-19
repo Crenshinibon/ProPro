@@ -23,21 +23,22 @@ Template.category.proposals = ->
     if(Meteor.user() and getCurrentUserRole(Meteor.user()) is "requestor")
         #only proposals whos author the user is
         Proposals.find(
-            visibility: {$in: this.visibility}
+            public: not this.private
             state: {$in: this.states}
             authors: Meteor.user().username
             ).fetch()
     else
         #all matching proposals
         Proposals.find(
-            visibility: {$in: this.visibility}
+            public: not this.private
             state: {$in: this.states}
             ).fetch()
 
 Template.category.open = ->
-    user = Meteor.user()
     col = LocalStates
     userName = "anon"
+    
+    user = Meteor.user()
     if(user)
         col = UserStates
         userName = user.username

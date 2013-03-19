@@ -2,7 +2,12 @@
     <form class="row-fluid proposal-body">
         <div id="message_block" class="row-fluid" style="display: none"><div id="message_block_content" class="span6 alert"></div></div>
         {{#if showDblClickNotice}}
-            <div class="row-fluid"><div class="span6 alert alert-info">{{label "double_click_to_edit_notice"}}<button name="dblclick" type="button" class="close" data-dismiss="alert">&times;</button></div></div>
+        <div class="row-fluid">
+            <div class="span6 alert alert-info">
+                {{label "double_click_to_edit_notice"}}
+                <button name="dblclick" type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        </div>
         {{/if}}
         <div class="row-fluid">{{> title}}</div>
         <div class="row-fluid">{{> project_type}}</div>

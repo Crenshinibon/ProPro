@@ -1,3 +1,28 @@
+model =
+    editableStates: ["draft","rejected"]
+    rejectCountDisplayRoles: ["requestor","decision_maker"]
+    workflowRoles: ["requestor","decision_maker"]
+    
+    defaultUserRoles: (user) -> 
+        v = {lu: user, role: "visitor"}
+        r = {lu: user, role: "requestor"}
+        UserRoles.insert(v)
+        UserRoles.insert(r)
+        UserRoles.find({lu: user.username}).fetch()
+    defaultUserState: (user) ->
+        lu: user
+        openProposals: []
+        openCategories: [
+            {cat: 'examination', role: 'visitor'}
+            {cat: 'approved', role: 'visitor'}
+            {cat: 'private', role: 'requestor'}
+            {cat: 'drafts', role: 'requestor'}
+        ]
+        closedNotices: []
+        editing: ""
+        selectedRole: "visitor"
+    
+
 #fixed data
 unless Roles
     Roles = new Meteor.Collection("roles")
@@ -6,15 +31,12 @@ NE_ROLE =
     desc: "not existing"
     cats: []
 
-
 unless States
     States = new Meteor.Collection("states")
 NE_STATE =
     lu: "not_existing"
     desc: "not existing"
     
-editableStates = ['draft','rejected']
-
 unless Categories
     Categories = new Meteor.Collection("categories")
 NE_CATEGORY =
@@ -27,17 +49,12 @@ NE_CATEGORY =
 unless UserRoles
     UserRoles = new Meteor.Collection("userroles")
 
-defaultUserRoles = (user) -> 
-    r = [{lu: user, role: "visitor"},{lu: user, role: "requestor"}]
-    UserRoles.insert(r)
-    r
-
 unless UserStates
     UserStates = new Meteor.Collection("userstates")
 
 unless LocalStates
     LocalStates = new Meteor.Collection(null)
-    UserRoles.insert({lu: "anon"}, role: "visitor")
+    UserRoles.insert({lu: "anon", role: "visitor"})
     LocalStates.insert(
         lu: "anon"
         openProposals: []
@@ -46,19 +63,6 @@ unless LocalStates
         editing: ""
         selectedRole: "visitor"
     )
-
-defaultUserState = (user) ->
-    lu: user
-    openProposals: []
-    openCategories: [
-        {cat: 'examination', role: 'visitor'}
-        {cat: 'approved', role: 'visitor'}
-        {cat: 'private', role: 'requestor'}
-        {cat: 'drafts', role: 'requestor'}
-    ]
-    closedNotices: []
-    editing: ""
-    selectedRole: "visitor"
 
 unless Proposals
     Proposals = new Meteor.Collection("proposals")
@@ -84,7 +88,7 @@ if(Meteor.isServer)
             cleanupVariableData()
             insertDummyProposals()
             
-        if(Meteor.users.find().count() == 0)
+        if(Meteor.users.find().count() is 0)
             initUsers()
         
 
@@ -103,28 +107,73 @@ if(Meteor.isServer)
             editing: ""
             selectedRole: "admin"
         )
+        Accounts.createUser(
+            username: "dirk"
+            email: "dirkporsche78@googlemail.com"
+            password: "test"
+        )
+        UserRoles.insert({lu: "dirk", role: "requestor"})
+        UserRoles.insert({lu: "dirk", role: "visitor"})
+        UserRoles.insert({lu: "dirk", role: "decision_maker"})
+        UserStates.insert(model.defaultUserState(Meteor.users.findOne({username: "dirk"})))
+        
 
     insertDummyProposals = ->
         Proposals.insert(
             title: "Special Project"
             type: "1235"
-            state: "draft"
-            visibility: "public"
-            rejectCount: 0
+            state: "rejected"
+            public: true
+            rejectCount: 1
             authors: ["dirk"]
-            creator: "dirk"
+            owner: "dirk"
             created: new Date
             lastChange: new Date
         )
-
+        Proposals.insert(
+            title: "Another Draft"
+            type: "1235"
+            state: "draft"
+            public: true
+            rejectCount: 0
+            authors: ["dirk"]
+            owner: "dirk"
+            created: new Date
+            lastChange: new Date
+        )
+        
+        Proposals.insert(
+            title: "Private Project"
+            type: "1234"
+            state: "draft"
+            public: false
+            rejectCount: 0
+            authors: ["dirk"]
+            owner: "admin"
+            created: new Date
+            lastChange: new Date
+        )
+        
+        Proposals.insert(
+            title: "Another Private Project"
+            type: "1234"
+            state: "draft"
+            public: false
+            rejectCount: 0
+            authors: ["dirk"]
+            owner: "dirk"
+            created: new Date
+            lastChange: new Date
+        )
+        
         Proposals.insert(
             title: "Important Project"
             type: "1234"
             state: "examination"
-            visibility: "public"
+            public: true
             rejectCount: 0
             authors: ["dirk"]
-            creator: "dirk"
+            owner: "dirk"
             created: new Date
             lastChange: new Date
         )
@@ -133,53 +182,53 @@ if(Meteor.isServer)
             title: "Approved Project"
             type: "1236"
             state: "approved"
-            visibility: "public"
+            public: true
             rejectCount: 2
             authors: ["dirk"]
-            creator: "dirk"
+            owner: "dirk"
             created: new Date
             lastChange: new Date
         )
 
     cleanupVariableData = ->
-        UserRoles.remove({})
-        UserStates.remove({})
+        #UserRoles.remove({})
+        #UserStates.remove({})
         Proposals.remove({})
-        Meteor.users.remove({})
+        #Meteor.users.remove({})
 
     setupCategories = ->
         Categories.insert(
             lu: "examination"
+            private: false
             states: ["examination"]
-            visibility: ["public","private"]
             desc: "Examination"
         )
 
         Categories.insert(
             lu: "approved"
+            private: false
             states: ["approved"]
-            visibility: ["public","private"]
             desc: "Approved"
         )
 
         Categories.insert(
             lu: "drafts"
+            private: false
             states: ["draft","rejected"]
-            visibility: ["public","private"]
             desc: "Drafts"
         )
 
         Categories.insert(
             lu: "private"
+            private: true
             states: ["draft"]
-            visibility: ["private"]
             desc: "Private"
         )
 
         Categories.insert(
             lu: "declined"
+            private: false
             states: ["declined"]
-            visibility: ["public","private"]
             desc: "Declined"
         )
 

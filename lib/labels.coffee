@@ -13,4 +13,21 @@ labels =
     title: "Title"
     project_type: "Project Type"
     
+    workflow_info_label_info: "Info"
+    workflow_info_label_warning: "Warning"
+    
+    approve: "Approve"
+    decline: "Decline"
+    reject: "Reject"
+    submit: "Submit"
+    publish: "Publish"
+    private: "Private"
+    delete: "Delete"
+    generate: "Generate"
+    print: "PDF"
+    
+    rejected_never: "The proposal never has been rejected."
+    rejected_once: "The proposal has been rejected once."
+    rejected_few: "The proposal has been rejected at least twice."
+    rejected_many: "The proposal has been rejected more often then five times."
     

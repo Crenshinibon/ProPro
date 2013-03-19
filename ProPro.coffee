@@ -8,7 +8,7 @@ if(Meteor.isClient)
     )
     
     Handlebars.registerHelper("isEditing", (modelAttr) ->
-        Meteor.user() and getUserState(Meteor.user()).editing is modelAttr
+        Meteor.user() and getUserState(Meteor.user()).editing is (this._id + modelAttr)
     )
     
     Accounts.ui.config(

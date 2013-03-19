@@ -2,21 +2,27 @@
 editableEventMap = (updateEvent, tag, modelAttr, actionFun) ->
     map = {}
     map["#{updateEvent} #{tag}"] = (e) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
         actionFun(this, event.target.value)
     map['dblclick'] = (e) ->
         e.preventDefault()
-        e.stopPropagation()
+        e.stopImmediatePropagation()
         if(allowedToEdit(Meteor.user(), this))
-            updateEditState(Meteor.user(), modelAttr)
+            updateEditState(Meteor.user(), this._id + modelAttr)
         else
             showMessage(labels.not_allowed_to_edit_message)
     map["blur #{tag}"] = (e) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
         updateEditState(Meteor.user(), '')
     map
     
 blurOnEnter = () ->
     'keypress input': (e) ->
         if(e.which is 13)
+            e.preventDefault()
+            e.stopImmediatePropagation()
             updateEditState(Meteor.user(), '')
 
 showMessage = (message) ->

@@ -20,17 +20,54 @@
 </template>
 
 <template name="proposal_buttons">
+    {{#if displayButtons}}
     <div class="btn-group" style="margin-top: 2px">
-        <button class="btn" type="button"><i class="icon-repeat"></i>&nbsp;File</button>
-        <button class="btn" type="button"><i class="icon-check"></i>&nbsp;Approve</button>
-        <button class="btn" type="button"><i class="icon-ban-circle"></i>&nbsp;Decline</button>
-        <!--button class="btn" type="button"><i class="icon-globe"></i>&nbsp;Publish</button-->
-        <!--button class="btn" type="button"><i class="icon-trash"></i>&nbsp;Delete</button-->
+        {{#if decidingButtons}}
+            <button id="approve{{_id}}" class="btn" type="button"><i class="icon-check"></i>&nbsp;{{label "approve"}}</button>
+            <button id="reject{{_id}}" class="btn" type="button"><i class="icon-arrow-left"></i>&nbsp;{{label "reject"}}</button>
+            <button id="decline{{_id}}" class="btn" type="button"><i class="icon-ban-circle"></i>&nbsp;{{label "decline"}}</button>
+        {{/if}}
+        {{#if authorButtons}}
+            <button id="submit{{_id}}" class="btn" type="button"><i class="icon-share"></i>&nbsp;{{label "submit"}}</button>
+            {{#if publishable}}
+                {{#unless public}}
+                <button id="publish{{_id}}" class="btn" type="button"><i class="icon-globe"></i>&nbsp;{{label "publish"}}</button>
+                {{else}}
+                <button id="private{{_id}}" class="btn" type="button"><i class="icon-eye-close"></i>&nbsp;{{label "private"}}</button>
+                {{/unless}}
+            {{/if}}
+            {{#if deleteButton}}
+                <button id="delete{{_id}}" class="btn" type="button"><i class="icon-trash"></i>&nbsp;{{label "delete"}}</button>
+            {{/if}}
+        {{/if}}
+        {{#if generateButton}}
+            <button id="generate{{_id}}" class="btn" type="button"><i class="icon-cog"></i>&nbsp;{{label "generate"}}</button>
+        {{/if}}
+        {{#if printButton}}
+            <button id="print{{_id}}" class="btn" type="button"><i class="icon-print"></i>&nbsp;{{label "print"}}</button>
+        {{/if}}
     </div>
+    {{/if}}
 </template>
 
 <template name="proposal_state">
-    <div><i class="icon-refresh"></i>&nbsp;<span class="badge badge-warning">5</span>&nbsp;<span class="label label-info">Info</span><i class="icon-exclamation-sign"></i>&nbsp;<i class="icon-eye-open"></i></div>
+    <div class="container-fluid">
+        <div class="row">
+        {{#if displayRejectCount}}
+        <div class="span4 align-right">
+            <i class="icon-refresh"></i>
+        </div>
+        <div class="span4">
+            <span title="{{rejectCountTooltip}}" class="tipified badge {{rejectNoticeType}}">{{rejectCount}}</span>
+        </div>
+        {{/if}}
+        {{#if displayWorkflowInfo}}
+        <div class="span4">
+            <span title="{{workflowInfoTooltip}}" class="tipified label {{workflowInfoType}}">{{workflowInfoLabel}}</span>
+        </div>
+        {{/if}}
+        </div>
+    </div>
 </template>
 
 <template name="proposal_vote">
