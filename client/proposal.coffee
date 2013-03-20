@@ -1,31 +1,34 @@
-toggleOpenProposal = (proposal, element) ->
-    text = $(element).text()
-    
+toggleOpenProposal = (proposal, actString) ->
     data = 
         openProposals: proposal._id
-    action =
-        $push: data
+    action = {}
+    action[actString] = data
     
-    if(text is 'close')
-        action =
-            $pull: data
     user = Meteor.user()
     us = getUserState(user)
     
     col = UserStates
     unless(user)
         col = LocalStates
+    
     col.update({_id: us._id}, action)
+
+openProposal = (proposal) ->
+    toggleOpenProposal(proposal, "$pull")
+    
+closeProposal = (proposal) ->
+    toggleOpenProposal(proposal, "$push")
+    
 
 Template.proposal.open = ->
     us = getUserState(Meteor.user())
     this._id in us.openProposals
         
 Template.proposal.events(
-    "click a": (e,t) ->
-        e.stopImmediatePropagation()
-        e.preventDefault()
-        toggleOpenProposal(this, e.target)
+    "click a.prop-open": (e,t) ->
+        openProposal(this)
+    "click a.prop-close": (e,t) ->
+        closeProposal(this)
     )
 
 Template.proposal_state.displayRejectCount = ->
@@ -89,8 +92,11 @@ Template.proposal_buttons.authorButtons = ->
 
 Template.proposal_buttons.publishable = ->
     this.state is 'draft'
+    
+Template.proposal_buttons.submitable = ->
+    this.state in ['draft','rejected'] and this.public
 
-Template.proposal_buttons.deleteButton = ->
+Template.proposal_buttons.deleteable = ->
     u = Meteor.user()
     u and this.owner is u.username and this.state is "draft"
     
@@ -102,8 +108,17 @@ Template.proposal_buttons.printButton = ->
     yes
     
 Template.proposal_buttons.events(
-    'click button': (e, t) ->
-        type = e.target.id.replace(this._id,'')
-        console.log(type)
-        console.log(this)
+    'click button.btn-publish': (e, t) ->
+        Proposals.update({_id: this._id},{$set: {public: true}})
+    'click button.btn-private': (e, t) ->
+        Proposals.update({_id: this._id},{$set: {public: false}})
+    'click button.btn-submit': (e, t) ->
+        Proposals.update({_id: this._id},{$set: {state: 'examination'}}) 
+    'click button.btn-reject': (e, t) ->
+        rc = this.rejectCount
+        Proposals.update({_id: this._id},{$set: {state: 'rejected', rejectCount: rc + 1}})
+    'click button.btn-decline': (e, t) ->
+        Proposals.update({_id: this._id},{$set: {state: 'declined'}})
+    'click button.btn-approve': (e, t) ->
+        Proposals.update({_id: this._id},{$set: {state: 'approved'}})       
 )

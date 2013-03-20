@@ -6,7 +6,7 @@
             <div class="span2 proposal-state">{{> proposal_state}}</div>
             <div class="span2 proposal-vote">{{> proposal_vote}}</div>
             <div class="span1 proposal-open">
-                <a href="#">{{#if open}}close{{else}}open{{/if}}</a>
+                <a href="#" class="{{#if open}}prop-open{{else}}prop-close{{/if}}">{{#if open}}close{{else}}open{{/if}}</a>
             </div>
         </div>
         {{#if open}}
@@ -23,28 +23,30 @@
     {{#if displayButtons}}
     <div class="btn-group" style="margin-top: 2px">
         {{#if decidingButtons}}
-            <button id="approve{{_id}}" class="btn" type="button"><i class="icon-check"></i>&nbsp;{{label "approve"}}</button>
-            <button id="reject{{_id}}" class="btn" type="button"><i class="icon-arrow-left"></i>&nbsp;{{label "reject"}}</button>
-            <button id="decline{{_id}}" class="btn" type="button"><i class="icon-ban-circle"></i>&nbsp;{{label "decline"}}</button>
+            <button class="btn btn-approve" type="button"><i class="icon-check"></i>&nbsp;{{label "approve"}}</button>
+            <button class="btn btn-reject" type="button"><i class="icon-arrow-left"></i>&nbsp;{{label "reject"}}</button>
+            <button class="btn btn-decline" type="button"><i class="icon-ban-circle"></i>&nbsp;{{label "decline"}}</button>
         {{/if}}
         {{#if authorButtons}}
-            <button id="submit{{_id}}" class="btn" type="button"><i class="icon-share"></i>&nbsp;{{label "submit"}}</button>
+            {{#if submitable}}
+                <button class="btn btn-submit" type="button"><i class="icon-share"></i>&nbsp;{{label "submit"}}</button>
+            {{/if}}
             {{#if publishable}}
                 {{#unless public}}
-                <button id="publish{{_id}}" class="btn" type="button"><i class="icon-globe"></i>&nbsp;{{label "publish"}}</button>
+                <button class="btn btn-publish" type="button"><i class="icon-globe"></i>&nbsp;{{label "publish"}}</button>
                 {{else}}
-                <button id="private{{_id}}" class="btn" type="button"><i class="icon-eye-close"></i>&nbsp;{{label "private"}}</button>
+                <button class="btn btn-private" type="button"><i class="icon-eye-close"></i>&nbsp;{{label "private"}}</button>
                 {{/unless}}
             {{/if}}
-            {{#if deleteButton}}
-                <button id="delete{{_id}}" class="btn" type="button"><i class="icon-trash"></i>&nbsp;{{label "delete"}}</button>
+            {{#if deleteable}}
+                <button class="btn btn-delete" type="button"><i class="icon-trash"></i>&nbsp;{{label "delete"}}</button>
             {{/if}}
         {{/if}}
         {{#if generateButton}}
-            <button id="generate{{_id}}" class="btn" type="button"><i class="icon-cog"></i>&nbsp;{{label "generate"}}</button>
+            <button class="btn btn-generate" type="button"><i class="icon-cog"></i>&nbsp;{{label "generate"}}</button>
         {{/if}}
         {{#if printButton}}
-            <button id="print{{_id}}" class="btn" type="button"><i class="icon-print"></i>&nbsp;{{label "print"}}</button>
+            <button class="btn btn-print" type="button"><i class="icon-print"></i>&nbsp;{{label "print"}}</button>
         {{/if}}
     </div>
     {{/if}}

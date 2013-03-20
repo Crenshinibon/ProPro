@@ -9,14 +9,15 @@ model =
         UserRoles.insert(v)
         UserRoles.insert(r)
         UserRoles.find({lu: user.username}).fetch()
-    defaultUserState: (user) ->
-        lu: user
+    defaultUserState: (username) ->
+        lu: username
         openProposals: []
         openCategories: [
             {cat: 'examination', role: 'visitor'}
             {cat: 'approved', role: 'visitor'}
             {cat: 'private', role: 'requestor'}
             {cat: 'drafts', role: 'requestor'}
+            {cat: 'examination', role: 'decision_maker'}
         ]
         closedNotices: []
         editing: ""
@@ -115,7 +116,7 @@ if(Meteor.isServer)
         UserRoles.insert({lu: "dirk", role: "requestor"})
         UserRoles.insert({lu: "dirk", role: "visitor"})
         UserRoles.insert({lu: "dirk", role: "decision_maker"})
-        UserStates.insert(model.defaultUserState(Meteor.users.findOne({username: "dirk"})))
+        UserStates.insert(model.defaultUserState("dirk"))
         
 
     insertDummyProposals = ->

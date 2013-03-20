@@ -1,4 +1,5 @@
-toggleOpenCategory = (cat, current) ->
+
+toggleCategory = (cat, actString) ->
     user = Meteor.user()    
     us = getUserState(user)
     
@@ -6,18 +7,21 @@ toggleOpenCategory = (cat, current) ->
         openCategories:
             cat: cat.lu
             role: getCurrentUserRole(user)
-    action =
-        $push: values
-        
-    text = $(current).text()
-    if text is 'close'
-        action =
-            $pull: values
+    action = {}
+    action[actString] = 
+        values
         
     col = UserStates     
     unless(user)
         col = LocalStates
+        
     col.update({_id: us._id}, action)
+
+openCategory = (cat) ->
+    toggleCategory(cat, '$pull')
+    
+closeCategory = (cat) ->
+    toggleCategory(cat, '$push')
     
 Template.category.proposals = ->
     if(Meteor.user() and getCurrentUserRole(Meteor.user()) is "requestor")
@@ -53,6 +57,10 @@ Template.category.open = ->
     us.count() > 0
     
 Template.category.events = (
-    'click a': (e, t)->
-        toggleOpenCategory(this, e.target)
+    'click a.cat-open': (e, t) ->
+        openCategory(this)
+    'click a.cat-close': (e, t) ->
+        closeCategory(this)
     )
+    
+    
