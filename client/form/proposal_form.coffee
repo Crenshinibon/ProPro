@@ -11,7 +11,7 @@ editableEventMap = (updateEvent, tag, modelAttr, actionFun) ->
         if(allowedToEdit(Meteor.user(), this))
             updateEditState(Meteor.user(), this._id + modelAttr)
         else
-            showMessage(labels.not_allowed_to_edit_message)
+            showMessage(this, labels.not_allowed_to_edit_message)
     map["blur #{tag}"] = (e) ->
         e.preventDefault()
         e.stopImmediatePropagation()
@@ -25,9 +25,10 @@ blurOnEnter = () ->
             e.stopImmediatePropagation()
             updateEditState(Meteor.user(), '')
 
-showMessage = (message) ->
-    $('#message_block_content').text(message)
-    $('#message_block').fadeIn()
+showMessage = (proposal, message) ->
+    pid = proposal._id
+    $("##{pid} .message-block-content").text(message)
+    $("##{pid} .message-block").fadeIn()
     Meteor.setTimeout(hideMessageBlock,20000)
 
 hideMessageBlock = ->

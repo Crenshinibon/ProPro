@@ -1,34 +1,16 @@
-toggleOpenProposal = (proposal, actString) ->
-    data = 
-        openProposals: proposal._id
-    action = {}
-    action[actString] = data
-    
-    user = Meteor.user()
-    us = getUserState(user)
-    
-    col = UserStates
-    unless(user)
-        col = LocalStates
-    
-    col.update({_id: us._id}, action)
-
-openProposal = (proposal) ->
-    toggleOpenProposal(proposal, "$pull")
-    
-closeProposal = (proposal) ->
-    toggleOpenProposal(proposal, "$push")
-    
-
 Template.proposal.open = ->
     us = getUserState(Meteor.user())
     this._id in us.openProposals
-        
+
+Template.proposal.rendered = ->
+    $(".tipified").tooltip({delay: 800})
+
+
 Template.proposal.events(
     "click a.prop-open": (e,t) ->
-        openProposal(this)
+        openProposal(this._id)
     "click a.prop-close": (e,t) ->
-        closeProposal(this)
+        closeProposal(this._id)
     )
 
 Template.proposal_state.displayRejectCount = ->
@@ -79,7 +61,7 @@ Template.proposal_buttons.displayButtons = ->
     
 Template.proposal_buttons.decidingButtons = ->
     r = getCurrentUserRole(Meteor.user())
-    r is "decision_maker" and this.state is "examination"
+    r is "decision_maker" and this.state is model.state.examination
     
 Template.proposal_buttons.authorButtons = ->
     u = Meteor.user()
@@ -91,18 +73,18 @@ Template.proposal_buttons.authorButtons = ->
         this.state in model.editableStates
 
 Template.proposal_buttons.publishable = ->
-    this.state is 'draft'
+    this.state is model.state.draft
     
 Template.proposal_buttons.submitable = ->
-    this.state in ['draft','rejected'] and this.public
+    this.state in [model.state.draft,model.state.rejected] and this.public
 
 Template.proposal_buttons.deleteable = ->
     u = Meteor.user()
-    u and this.owner is u.username and this.state is "draft"
+    u and this.owner is u.username and this.state is model.state.draft
     
 Template.proposal_buttons.generateButton = ->
     r = getCurrentUserRole(Meteor.user())
-    r is "decision_maker" and this.state is "approved"
+    r is "decision_maker" and this.state is model.state.approved
     
 Template.proposal_buttons.printButton = ->
     yes
@@ -113,12 +95,12 @@ Template.proposal_buttons.events(
     'click button.btn-private': (e, t) ->
         Proposals.update({_id: this._id},{$set: {public: false}})
     'click button.btn-submit': (e, t) ->
-        Proposals.update({_id: this._id},{$set: {state: 'examination'}}) 
+        Proposals.update({_id: this._id},{$set: {state: model.state.examination}}) 
     'click button.btn-reject': (e, t) ->
         rc = this.rejectCount
-        Proposals.update({_id: this._id},{$set: {state: 'rejected', rejectCount: rc + 1}})
+        Proposals.update({_id: this._id},{$set: {state: model.state.rejected, rejectCount: rc + 1}})
     'click button.btn-decline': (e, t) ->
-        Proposals.update({_id: this._id},{$set: {state: 'declined'}})
+        Proposals.update({_id: this._id},{$set: {state: model.state.approved}})
     'click button.btn-approve': (e, t) ->
-        Proposals.update({_id: this._id},{$set: {state: 'approved'}})       
+        Proposals.update({_id: this._id},{$set: {state: model.state.approved}})       
 )

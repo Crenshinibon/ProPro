@@ -1,6 +1,6 @@
 <template name="proposal_form">
-    <form class="row-fluid proposal-body">
-        <div id="message_block" class="row-fluid" style="display: none"><div id="message_block_content" class="span6 alert"></div></div>
+    <form class="row-fluid proposal-body {{#unless created}}proposal-body-def-color{{else}}proposal-body-new-color{{/unless}}">
+        <div class="row-fluid message-block" style="display: none"><div class="span6 alert message-block-content"></div></div>
         {{#if showDblClickNotice}}
         <div class="row-fluid">
             <div class="span6 alert alert-info">

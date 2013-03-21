@@ -19,7 +19,7 @@ if(Meteor.isClient)
     Template.role.userRoles = ->
         user = Meteor.user()
         if(user)
-            roles = (r.role for r in getUserRoles(user))
+            (r.role for r in getUserRoles(user))
             Roles.find({lu: {$in: roles}}).fetch()
         else
             Roles.find({lu: "visitor"}).fetch()

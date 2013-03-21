@@ -10,6 +10,17 @@ labels =
     state_approved: "Approved"
     state_examination: "Examination"
     
+    role_visitor: "Visitor"
+    role_decision_maker: "Decision Maker"
+    role_admin: "Administrator"
+    role_requestor: "Requestor"
+    
+    cat_private: "Private"
+    cat_drafts: "Drafts"
+    cat_examination: "Examination"
+    cat_declined: "Declined"
+    cat_approved: "Approved"
+    
     title: "Title"
     project_type: "Project Type"
     
@@ -25,6 +36,9 @@ labels =
     delete: "Delete"
     generate: "Generate"
     print: "PDF"
+    
+    new_proposal: "New"
+    new_proposals_title: "New Proposal"
     
     rejected_never: "The proposal never has been rejected."
     rejected_once: "The proposal has been rejected once."

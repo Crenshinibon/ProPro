@@ -10,8 +10,19 @@
         </div>
     </div>
     {{#if open}}
+        {{> category_toolbar}}
         {{#each proposals}}
         {{> proposal}}
         {{/each}}
     {{/if}}
+</template>
+
+<template name="category_toolbar">
+    <div class="row-fluid">
+        <div class="span4 aling-left" style="magin-top: 2px">
+            {{#if createProposals}}
+                <button class="btn btn-create" type="button"><i class="icon-plus-sign"></i>&nbsp;{{label "new_proposal"}}</button>
+            {{/if}}
+        </div>
+    </div>
 </template>

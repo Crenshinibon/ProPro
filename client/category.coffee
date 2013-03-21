@@ -38,6 +38,7 @@ Template.category.proposals = ->
             state: {$in: this.states}
             ).fetch()
 
+
 Template.category.open = ->
     col = LocalStates
     userName = "anon"
@@ -62,5 +63,13 @@ Template.category.events = (
     'click a.cat-close': (e, t) ->
         closeCategory(this)
     )
-    
-    
+
+Template.category_toolbar.createProposals = ->
+    user = Meteor.user()
+    user and this.lu is 'private' and getCurrentUserRole(user) is 'requestor'
+
+Template.category_toolbar.events = (
+    'click button.btn-create': (e, t) ->
+        id = model.createProposal(Meteor.user())
+        openProposal(id, Meteor.user)
+)

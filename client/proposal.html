@@ -1,12 +1,12 @@
 <template name="proposal">
-    <div class="row-fluid proposal-box">
+    <div id="{{this._id}}" class="row-fluid proposal-box {{#if created}}new-proposal{{/if}}">
         <div class="row-fluid proposal-header">
             <div class="span3 proposal-title">{{> proposal_title}}</div>
             <div class="span4 proposal-buttons">{{> proposal_buttons}}</div>
             <div class="span2 proposal-state">{{> proposal_state}}</div>
             <div class="span2 proposal-vote">{{> proposal_vote}}</div>
             <div class="span1 proposal-open">
-                <a href="#" class="{{#if open}}prop-open{{else}}prop-close{{/if}}">{{#if open}}close{{else}}open{{/if}}</a>
+                <a href="#" class="{{#if open}}prop-close{{else}}prop-open{{/if}}">{{#if open}}close{{else}}open{{/if}}</a>
             </div>
         </div>
         {{#if open}}
