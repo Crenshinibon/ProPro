@@ -113,12 +113,6 @@ Template.delete_dialog.title = ->
 Template.delete_dialog.message = ->
     new Handlebars.SafeString(labels.delete_dialog_message + '<br><b>' + this.title + '</b>')
     
-Template.delete_dialog.cancelPrimary = () ->
-    yes
-
-Template.delete_dialog.okPrimary = () ->
-    no
-
 Template.delete_dialog.events(
     "click .btn-ok": (e,t) ->
         Proposals.remove({_id: this._id})
