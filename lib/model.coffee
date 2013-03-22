@@ -9,7 +9,7 @@ model.state =
 model.category =
     examination:
         lu: "examination"
-        desc: labels.cat_private
+        desc: labels.cat_examination
         states: [model.state.examination]
     approved:
         lu: "approved"
@@ -58,63 +58,134 @@ model.role =
     
 
 model.editableStates = [model.state.draft, model.state.rejected]
-model.rejectCountDisplayRoles = ["requestor","decision_maker"]
-model.workflowRoles = ["requestor","decision_maker"]
-model.defaultUserRoles = (user) -> 
-    v = {lu: user, role: "visitor"}
-    r = {lu: user, role: "requestor"}
-    UserRoles.insert(v)
-    UserRoles.insert(r)
-    UserRoles.find({lu: user.username}).fetch()
+model.rejectCountDisplayRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
+model.workflowRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
+
+model.defaultUserRoles = (username) -> 
+    UserRoles.insert({lu: username, role: model.role.visitor.lu})
+    UserRoles.insert({lu: username, role: model.role.requestor.lu})
+    UserRoles.find({lu: username}).fetch()
+    
 model.defaultUserState = (username) ->
     lu: username
     openProposals: []
     openCategories: [
-        {cat: 'examination', role: 'visitor'}
-        {cat: 'approved', role: 'visitor'}
-        {cat: 'private', role: 'requestor'}
-        {cat: 'drafts', role: 'requestor'}
-        {cat: 'examination', role: 'decision_maker'}
+        {cat: model.category.examination.lu, role: model.role.visitor.lu}
+        {cat: model.category.approved.lu, role: model.role.visitor.lu}
+        {cat: model.category.private.lu, role: model.role.requestor.lu}
+        {cat: model.category.drafts.lu, role: model.role.requestor.lu}
+        {cat: model.category.examination.lu, role: model.role.decision_maker.lu}
     ]
     closedNotices: []
     editing: ""
-    selectedRole: "visitor"
+    selectedRole: model.role.visitor.lu
+    
 model.defaultProjectType = () ->
-    ProjectTypes.findOne()
+    ProjectTypes.find().fetch()[0]
     
 model.createProposal = (creator) ->
-    t = model.proposalStub(creator)
+    t = model.proposalStub(creator.username)
     Proposals.insert(t)
     
-model.proposalStub = (creator) ->
+model.proposalStub = (username) ->
     created: true
     title: labels.new_proposals_title
     type: model.defaultProjectType.lu
     state: model.state.draft
     public: false
     rejectCount: 0
-    authors: [creator.username]
-    owner: creator.username
+    authors: [username]
+    owner: username
     createDate: new Date
     lastChangeDate: new Date
 
+model.userRoles = (user) ->
+    c = UserRoles.find({lu: user.username})
+    if c.count() == 0
+        model.defaultUserRoles(user.username)
+    else
+        c.fetch()
 
-#fixed data
-unless Roles
-    Roles = new Meteor.Collection("roles")
-NE_ROLE = 
-    lu: "not_existing"
-    desc: "not existing"
-    cats: []
+model.currentUserRole = (user) ->
+    us = model.userState(user)
+    us.selectedRole
     
-unless Categories
-    Categories = new Meteor.Collection("categories")
-NE_CATEGORY =
-    lu: "not_existing"
-    states: []
-    visibility: []
-    desc: "not existing"
+model.updateCurrentUserRole = (user, lu) ->
+    if(user)
+        us = model.userState(user)
+        UserStates.update({_id: us._id},{$set: {selectedRole: lu}})
+
+model.userRoleExists = (username) ->
+    UserRoles.find({lu: username}).count() > 0    
+
+model.cleanupUserStates = (cursor) ->
+    deleteList = cursor.fetch().map((e) -> e._id)
+    deleteList.forEach((e) ->
+        UserStates.remove({_id: e})
+    )
+
+model.createUserState = (user) ->
+    UserStates.insert(model.defaultUserState(user.username))
+
+model.userState = (user) ->
+    if(user)
+        cursor = UserStates.find({lu: user.username})
+        if cursor.count() > 1
+            model.cleanupUserStates(cursor)
+            console.log("UserStates were cleaned!")
+            model.userState(user)
+        else if cursor.count() is 0
+            model.createUserState(user)
+            model.userState(user)
+        
+        UserStates.findOne({lu: user.username})
+    else
+        LocalStates.findOne({lu: "anon"})
+        
+model.updateEditState = (user, value) ->
+    us = model.userState(user)
+    UserStates.update({_id: us._id}, {$set: {editing: value}})
     
+model.allowedToEdit = (user, proposal) ->
+    user and user.username in proposal.authors and 
+    proposal.state in model.editableStates and 
+    model.currentUserRole(user) is "requestor"
+        
+model.closeNotice = (user, notice) ->
+    us = model.userState(user)
+    if(user)
+        col = UserStates
+    else
+        col = LocalStates
+    col.update({_id: us._id}, {$push: {closedNotices: notice}})
+    yes
+        
+model.hasClosedNotice = (user, notice) ->
+    us = model.userState(user)
+    notice in us.closedNotices
+    
+model.toggleOpenProposal = (pid, actString) ->
+    data = 
+        openProposals: pid
+    action = {}
+    action[actString] = data
+    
+    user = Meteor.user()
+    us = model.userState(user)
+    
+    col = UserStates
+    unless(user)
+        col = LocalStates
+    
+    col.update({_id: us._id}, action)
+
+model.closeProposal = (pid) ->
+    model.toggleOpenProposal(pid, "$pull")
+    
+model.openProposal = (pid) ->
+    model.toggleOpenProposal(pid, "$push")
+
+
 #variable data
 unless UserRoles
     UserRoles = new Meteor.Collection("userroles")
@@ -124,14 +195,13 @@ unless UserStates
 
 unless LocalStates
     LocalStates = new Meteor.Collection(null)
-    UserRoles.insert({lu: "anon", role: "visitor"})
     LocalStates.insert(
         lu: "anon"
         openProposals: []
-        openCategories: [{cat: "approved", role: "visitor"}]
+        openCategories: [{cat: model.category.approved.lu, role: model.role.visitor.lu}]
         closedNotices: []
         editing: ""
-        selectedRole: "visitor"
+        selectedRole: model.role.visitor.lu
     )
 
 unless Proposals
@@ -140,23 +210,15 @@ unless Proposals
 unless ProjectTypes
     ProjectTypes = new Meteor.Collection("projecttypes")
 
-
 if(Meteor.isServer)
     Meteor.startup () -> 
-        Roles.remove({})
-        setupRoles()
-        
-        Categories.remove({})
-        setupCategories()
-        
         initProjectTypes()
         
         if(conf.testing)
             cleanupVariableData()
             insertDummyProposals()
             
-        if(Meteor.users.find().count() is 0)
-            initUsers()
+        #initUsers()
         
 
     initUsers = ->
@@ -165,159 +227,38 @@ if(Meteor.isServer)
             email: conf.admin_email
             password: conf.admin_password
         )
-        UserRoles.insert({lu: "admin", role: "admin"})
+        UserRoles.insert({lu: "admin", role: model.role.admin.lu})
         UserStates.insert(
             lu: "admin"
             openProposals: []
             openCategories: []
             closedNotices: []
             editing: ""
-            selectedRole: "admin"
+            selectedRole: model.role.admin.lu
         )
         Accounts.createUser(
             username: "dirk"
             email: "dirkporsche78@googlemail.com"
             password: "test"
         )
-        UserRoles.insert({lu: "dirk", role: "requestor"})
-        UserRoles.insert({lu: "dirk", role: "visitor"})
-        UserRoles.insert({lu: "dirk", role: "decision_maker"})
+        UserRoles.insert({lu: "dirk", role: model.role.visitor.lu})
+        UserRoles.insert({lu: "dirk", role: model.role.requestor.lu})
+        UserRoles.insert({lu: "dirk", role: model.role.decision_maker.lu})
         UserStates.insert(model.defaultUserState("dirk"))
+        
+        UserRoles.insert({lu: "anon", role: model.role.visitor.lu})
+        
         
 
     insertDummyProposals = ->
-        Proposals.insert(
-            title: "Special Project"
-            type: "1235"
-            state: model.state.rejected
-            public: true
-            rejectCount: 1
-            authors: ["dirk"]
-            owner: "dirk"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
-        Proposals.insert(
-            title: "Another Draft"
-            type: "1235"
-            state: model.state.draft
-            public: true
-            rejectCount: 0
-            authors: ["dirk"]
-            owner: "dirk"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
+        p = model.proposalStub("dirk")
+        for i in [1..10]
+            p.title = "Project " + i
+            p.created = false
+            Proposals.insert(p)
         
-        Proposals.insert(
-            title: "Private Project"
-            type: "1234"
-            state: model.state.draft
-            public: false
-            rejectCount: 0
-            authors: ["dirk"]
-            owner: "admin"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
-        
-        Proposals.insert(
-            title: "Another Private Project"
-            type: "1234"
-            state: model.state.draft
-            public: false
-            rejectCount: 0
-            authors: ["dirk"]
-            owner: "dirk"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
-        
-        Proposals.insert(
-            title: "Important Project"
-            type: "1234"
-            state: model.state.approved
-            public: true
-            rejectCount: 0
-            authors: ["dirk"]
-            owner: "dirk"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
-        
-        Proposals.insert(
-            title: "Approved Project"
-            type: "1236"
-            state: model.state.approved
-            public: true
-            rejectCount: 2
-            authors: ["dirk"]
-            owner: "dirk"
-            createDate: new Date
-            lastChangeDate: new Date
-        )
-
     cleanupVariableData = ->
         #UserRoles.remove({})
         #UserStates.remove({})
         Proposals.remove({})
         #Meteor.users.remove({})
-
-    setupCategories = ->
-        Categories.insert(
-            lu: "examination"
-            private: false
-            states: [model.state.examination]
-            desc: labels.cat_examination
-        )
-
-        Categories.insert(
-            lu: "approved"
-            private: false
-            states: [model.state.approved]
-            desc: labels.cat_approved
-        )
-
-        Categories.insert(
-            lu: "drafts"
-            private: false
-            states: [model.state.draft,model.state.rejected]
-            desc: labels.cat_drafts
-        )
-
-        Categories.insert(
-            lu: "private"
-            private: true
-            states: [model.state.draft]
-            desc: labels.cat_private
-        )
-
-        Categories.insert(
-            lu: "declined"
-            private: false
-            states: [model.state.declined]
-            desc: labels.cat_declined
-        )
-
-    setupRoles = ->
-        Roles.insert(
-            lu: "visitor"
-            desc: labels.role_visitor
-            
-        )
-        Roles.insert(
-            lu: "requestor"
-            desc: labels.role_requestor
-            cats: ["private","drafts","examination","approved","declined"]
-        )
-        Roles.insert(
-            lu: "decision_maker"
-            desc: labels.role_decision_maker
-            cats: ["examination","drafts","declined","approved"]
-        )
-        Roles.insert(
-            lu: "admin"
-            desc: labels.role_admin
-            cats: []
-        )
-    

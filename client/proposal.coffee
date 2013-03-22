@@ -1,5 +1,5 @@
 Template.proposal.open = ->
-    us = getUserState(Meteor.user())
+    us = model.userState(Meteor.user())
     this._id in us.openProposals
 
 Template.proposal.rendered = ->
@@ -8,13 +8,13 @@ Template.proposal.rendered = ->
 
 Template.proposal.events(
     "click a.prop-open": (e,t) ->
-        openProposal(this._id)
+        model.openProposal(this._id)
     "click a.prop-close": (e,t) ->
-        closeProposal(this._id)
+        model.closeProposal(this._id)
     )
 
 Template.proposal_state.displayRejectCount = ->
-    r = getCurrentUserRole(Meteor.user())
+    r = model.currentUserRole(Meteor.user())
     r in model.rejectCountDisplayRoles
 
 addRejectNoticeTypeTooltip = (proposal) ->
@@ -39,7 +39,7 @@ Template.proposal_state.rejectCountTooltip = ->
     evaluateRejectCount(this.rejectCount).tooltip
         
 Template.proposal_state.displayWorkflowInfo = ->
-    r = getCurrentUserRole(Meteor.user())
+    r = model.currentUserRole(Meteor.user())
     r in model.workflowRoles
 
 Template.proposal_state.workflowInfoLabel = ->
@@ -56,20 +56,20 @@ Template.proposal_state.rendered = ->
     
     
 Template.proposal_buttons.displayButtons = ->
-    r = getCurrentUserRole(Meteor.user())
+    r = model.currentUserRole(Meteor.user())
     r in model.workflowRoles
     
 Template.proposal_buttons.decidingButtons = ->
-    r = getCurrentUserRole(Meteor.user())
-    r is "decision_maker" and this.state is model.state.examination
+    r = model.currentUserRole(Meteor.user())
+    r is model.role.decision_maker.lu and this.state is model.state.examination
     
 Template.proposal_buttons.authorButtons = ->
     u = Meteor.user()
     if u
-        r = getCurrentUserRole(u)
+        r = model.currentUserRole(u)
         
         u.username in this.authors and 
-        r is "requestor" and 
+        r is model.role.requestor.lu and 
         this.state in model.editableStates
 
 Template.proposal_buttons.publishable = ->
@@ -83,8 +83,8 @@ Template.proposal_buttons.deleteable = ->
     u and this.owner is u.username and this.state is model.state.draft
     
 Template.proposal_buttons.generateButton = ->
-    r = getCurrentUserRole(Meteor.user())
-    r is "decision_maker" and this.state is model.state.approved
+    r = model.currentUserRole(Meteor.user())
+    r is model.role.decision_maker.lu and this.state is model.state.approved
     
 Template.proposal_buttons.printButton = ->
     yes
@@ -100,7 +100,7 @@ Template.proposal_buttons.events(
         rc = this.rejectCount
         Proposals.update({_id: this._id},{$set: {state: model.state.rejected, rejectCount: rc + 1}})
     'click button.btn-decline': (e, t) ->
-        Proposals.update({_id: this._id},{$set: {state: model.state.approved}})
+        Proposals.update({_id: this._id},{$set: {state: model.state.declined}})
     'click button.btn-approve': (e, t) ->
         Proposals.update({_id: this._id},{$set: {state: model.state.approved}})       
 )

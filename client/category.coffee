@@ -1,12 +1,11 @@
-
 toggleCategory = (cat, actString) ->
     user = Meteor.user()    
-    us = getUserState(user)
+    us = model.userState(user)
     
     values =
         openCategories:
             cat: cat.lu
-            role: getCurrentUserRole(user)
+            role: model.currentUserRole(user)
     action = {}
     action[actString] = 
         values
@@ -24,19 +23,17 @@ closeCategory = (cat) ->
     toggleCategory(cat, '$push')
     
 Template.category.proposals = ->
-    if(Meteor.user() and getCurrentUserRole(Meteor.user()) is "requestor")
-        #only proposals whos author the user is
-        Proposals.find(
-            public: not this.private
-            state: {$in: this.states}
-            authors: Meteor.user().username
-            ).fetch()
-    else
-        #all matching proposals
-        Proposals.find(
-            public: not this.private
-            state: {$in: this.states}
-            ).fetch()
+    q = 
+        public: true
+        state: {$in: this.states}
+    if (Meteor.user() and 
+            model.currentUserRole(Meteor.user()) is "requestor")
+        
+        q.authors = Meteor.user().username
+        if model.category.private is this
+            q.public = false
+        
+    Proposals.find(q).fetch()
 
 
 Template.category.open = ->
@@ -53,7 +50,7 @@ Template.category.open = ->
         openCategories: 
             $elemMatch:
                 cat: this.lu
-                role: getCurrentUserRole(user)
+                role: model.currentUserRole(user)
     )
     us.count() > 0
     
@@ -66,10 +63,13 @@ Template.category.events = (
 
 Template.category_toolbar.createProposals = ->
     user = Meteor.user()
-    user and this.lu is 'private' and getCurrentUserRole(user) is 'requestor'
+    user and this.lu is 'private' and model.currentUserRole(user) is 'requestor'
 
 Template.category_toolbar.events = (
     'click button.btn-create': (e, t) ->
         id = model.createProposal(Meteor.user())
-        openProposal(id, Meteor.user)
+        model.openProposal(id, Meteor.user)
+        Meteor.setTimeout(->
+                Proposals.update({_id: id},{$set: {created: false}})
+            , 30000)
 )

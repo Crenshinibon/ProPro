@@ -8,19 +8,19 @@
         <div class="row-fluid navbar-form header">
             {{> role}}
             {{> search}}
-            {{> userarea}}
+            {{> user_area}}
         </div>
-        {{> catArea}}
+        {{> cat_area}}
     </div>
 </body>
 
-<template name="catArea">
+<template name="cat_area">
     {{#each cats}}
         {{> category}}
     {{/each}}
 </template>
 
-<template name="userarea">
+<template name="user_area">
     <div class="offset1 span3 navbar-text align-right">
     {{#unless currentUser }}
         User: Anonymous {{loginButtons align="right"}}

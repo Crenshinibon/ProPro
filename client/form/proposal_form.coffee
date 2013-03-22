@@ -8,14 +8,14 @@ editableEventMap = (updateEvent, tag, modelAttr, actionFun) ->
     map['dblclick'] = (e) ->
         e.preventDefault()
         e.stopImmediatePropagation()
-        if(allowedToEdit(Meteor.user(), this))
-            updateEditState(Meteor.user(), this._id + modelAttr)
+        if(model.allowedToEdit(Meteor.user(), this))
+            model.updateEditState(Meteor.user(), this._id + modelAttr)
         else
             showMessage(this, labels.not_allowed_to_edit_message)
     map["blur #{tag}"] = (e) ->
         e.preventDefault()
         e.stopImmediatePropagation()
-        updateEditState(Meteor.user(), '')
+        model.updateEditState(Meteor.user(), '')
     map
     
 blurOnEnter = () ->
@@ -23,7 +23,7 @@ blurOnEnter = () ->
         if(e.which is 13)
             e.preventDefault()
             e.stopImmediatePropagation()
-            updateEditState(Meteor.user(), '')
+            model.updateEditState(Meteor.user(), '')
 
 showMessage = (proposal, message) ->
     pid = proposal._id
@@ -41,14 +41,14 @@ Template.proposal_form.showDblClickNotice = () ->
     user = Meteor.user()
     
     user and 
-    allowedToEdit(user, this) and not 
-    userHasClosedNotice(user,'dblclick')
+    model.allowedToEdit(user, this) and not 
+    model.hasClosedNotice(user,'dblclick')
 
 Template.proposal_form.events(
     'submit form': ->
         false
     'click button.close': (e) ->
-        userClosesNotice(Meteor.user(),e.target.name)
+        model.closeNotice(Meteor.user(),e.target.name)
     )
 
 ###Proposal title display and inupt###
