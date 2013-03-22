@@ -22,6 +22,14 @@ openCategory = (cat) ->
 closeCategory = (cat) ->
     toggleCategory(cat, '$push')
     
+checkTimeoutCreated = (proposals) ->
+    proposals.forEach((e) ->
+        if(e.created)
+            deadline = e.createDate.getTime() + model.createdProposalTimeout 
+            if(deadline < new Date) 
+                Proposals.update({_id: e._id},{$set: {created: false}})
+    )
+    
 Template.category.proposals = ->
     q = 
         public: true
@@ -33,8 +41,9 @@ Template.category.proposals = ->
         if model.category.private is this
             q.public = false
         
-    Proposals.find(q).fetch()
-
+    p = Proposals.find(q).fetch()
+    checkTimeoutCreated(p)
+    p
 
 Template.category.open = ->
     col = LocalStates
@@ -71,5 +80,5 @@ Template.category_toolbar.events = (
         model.openProposal(id, Meteor.user)
         Meteor.setTimeout(->
                 Proposals.update({_id: id},{$set: {created: false}})
-            , 30000)
+            , model.createdProposalTimeout)
 )

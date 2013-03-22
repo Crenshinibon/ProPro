@@ -40,6 +40,11 @@ labels =
     new_proposal: "New"
     new_proposals_title: "New Proposal"
     
+    cancel: "Cancel"
+    ok: "OK"
+    delete_dialog_title: "Delete a Project Proposal?"
+    delete_dialog_message: "Do you really want to delete the project proposal titled: "
+    
     rejected_never: "The proposal never has been rejected."
     rejected_once: "The proposal has been rejected once."
     rejected_few: "The proposal has been rejected at least twice."

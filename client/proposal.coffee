@@ -102,5 +102,26 @@ Template.proposal_buttons.events(
     'click button.btn-decline': (e, t) ->
         Proposals.update({_id: this._id},{$set: {state: model.state.declined}})
     'click button.btn-approve': (e, t) ->
-        Proposals.update({_id: this._id},{$set: {state: model.state.approved}})       
+        Proposals.update({_id: this._id},{$set: {state: model.state.approved}})
+    'click button.btn-delete': (e, t) ->
+        $('#deleteDialog').modal('toggle')
+)
+        
+Template.delete_dialog.title = ->
+    labels.delete_dialog_title
+    
+Template.delete_dialog.message = ->
+    new Handlebars.SafeString(labels.delete_dialog_message + '<br><b>' + this.title + '</b>')
+    
+Template.delete_dialog.cancelPrimary = () ->
+    yes
+
+Template.delete_dialog.okPrimary = () ->
+    no
+
+Template.delete_dialog.events(
+    "click .btn-ok": (e,t) ->
+        Proposals.remove({_id: this._id})
+    "click .btn-cancel": (e,t) ->
+        console.log("deletion canceled")
 )

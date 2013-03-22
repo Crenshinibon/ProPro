@@ -15,11 +15,10 @@ if(Meteor.isClient)
         passwordSignupFields: 'USERNAME_AND_EMAIL'
     )
     
-    
     Template.role.userRoles = ->
         user = Meteor.user()
         if(user)
-            model.userRoles(user).map((e) -> model.role[e.role])
+            model.userRoles(user.username).roles.map((e) -> model.role[e])
         else
             [model.role.visitor]
     
@@ -40,3 +39,6 @@ if(Meteor.isClient)
     Template.cat_area.cats = ->
         r = model.currentUserRole(Meteor.user())
         model.role[r].cats
+        
+        
+    

@@ -56,15 +56,14 @@ model.role =
         desc: labels.role_admin
         cats: []
     
-
+model.createdProposalTimeout = 60000
 model.editableStates = [model.state.draft, model.state.rejected]
 model.rejectCountDisplayRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 model.workflowRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 
-model.defaultUserRoles = (username) -> 
-    UserRoles.insert({lu: username, role: model.role.visitor.lu})
-    UserRoles.insert({lu: username, role: model.role.requestor.lu})
-    UserRoles.find({lu: username}).fetch()
+model.defaultUserRoles = (username) ->
+    lu: username
+    roles: [model.role.visitor.lu, model.role.requestor.lu]
     
 model.defaultUserState = (username) ->
     lu: username
@@ -99,12 +98,26 @@ model.proposalStub = (username) ->
     createDate: new Date
     lastChangeDate: new Date
 
-model.userRoles = (user) ->
-    c = UserRoles.find({lu: user.username})
-    if c.count() == 0
-        model.defaultUserRoles(user.username)
-    else
-        c.fetch()
+model.cleanupUserRoles = (cursor) ->
+    deleteList = cursor.fetch().map((e) -> e._id)
+    deleteList.forEach((e) ->
+        UserRoles.remove({_id: e})
+    )
+    
+model.createUserRoles = (username) ->
+    UserRoles.insert(model.defaultUserRoles(username))
+
+model.userRoles = (username) ->
+    cursor = UserRoles.find({lu: username})
+    if cursor.count() > 1
+        model.cleanupUserRoles(cursor)
+        console.log("UserRoles were cleaned!")
+        model.userRoles(username)
+    else if cursor.count() == 0
+        model.createUserRoles = (username)
+        model.userRoles(username)
+            
+    UserRoles.findOne({lu: username})
 
 model.currentUserRole = (user) ->
     us = model.userState(user)
@@ -216,7 +229,7 @@ if(Meteor.isServer)
         
         if(conf.testing)
             cleanupVariableData()
-            insertDummyProposals()
+            #insertDummyProposals()
             
         #initUsers()
         
@@ -227,7 +240,10 @@ if(Meteor.isServer)
             email: conf.admin_email
             password: conf.admin_password
         )
-        UserRoles.insert({lu: "admin", role: model.role.admin.lu})
+        UserRoles.insert(
+            lu: "admin"
+            roles: [model.role.admin.lu]
+        )
         UserStates.insert(
             lu: "admin"
             openProposals: []
@@ -241,13 +257,13 @@ if(Meteor.isServer)
             email: "dirkporsche78@googlemail.com"
             password: "test"
         )
-        UserRoles.insert({lu: "dirk", role: model.role.visitor.lu})
-        UserRoles.insert({lu: "dirk", role: model.role.requestor.lu})
-        UserRoles.insert({lu: "dirk", role: model.role.decision_maker.lu})
+        UserRoles.insert(
+            lu: "dirk"
+            roles: [model.role.visitor.lu, 
+                model.role.requestor.lu, 
+                model.role.decision_maker.lu]
+        )
         UserStates.insert(model.defaultUserState("dirk"))
-        
-        UserRoles.insert({lu: "anon", role: model.role.visitor.lu})
-        
         
 
     insertDummyProposals = ->

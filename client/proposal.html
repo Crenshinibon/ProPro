@@ -13,6 +13,7 @@
             {{> proposal_form}}
         {{/if}}
     </div>
+    {{> delete_dialog}}
 </template>
 
 <template name="proposal_title">
@@ -83,6 +84,21 @@
                 <i class="icon-star icon-white"></i>
                 <i class="icon-star"></i>
             </span>
+        </div>
+    </div>
+</template>
+
+<template name="delete_dialog">
+    <div class="modal hide fade" id="deleteDialog">
+        <div class="modal-header">
+            <h3>{{title}}</h3>
+        </div>
+        <div class="modal-body">
+            {{message}}
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn {{cancelPrimary}} btn-cancel" data-dismiss="modal">{{label "cancel"}}</a>
+            <a href="#" class="btn {{okPrimary}} btn-ok" data-dismiss="modal">{{label "ok"}}</a>
         </div>
     </div>
 </template>
