@@ -1,6 +1,7 @@
 labels =
     nothing_selected: "None"
     not_allowed_to_edit_message: "You don't have the proper rights to edit this!"
+    not_allowed_to_add_authors: "You don't have the proper rights to add an author!"
     
     double_click_to_edit_notice: "Double click the values to edit them."
     
@@ -49,4 +50,9 @@ labels =
     rejected_once: "The proposal has been rejected once."
     rejected_few: "The proposal has been rejected at least twice."
     rejected_many: "The proposal has been rejected more often then five times."
+    
+    creator: "Creator"
+    authors: "Authors"
+    invite_author: "Invite"
+    lastChangeDate: "Updated"
     

@@ -1,4 +1,4 @@
-if(Meteor.isClient)
+if Meteor.isClient
     Handlebars.registerHelper("label", (lu) ->
         labels[lu]
     )
@@ -14,6 +14,8 @@ if(Meteor.isClient)
     Accounts.ui.config(
         passwordSignupFields: 'USERNAME_AND_EMAIL'
     )
+    
+    Meteor.subscribe('allUsers')
     
     Template.role.userRoles = ->
         user = Meteor.user()
@@ -40,5 +42,13 @@ if(Meteor.isClient)
         r = model.currentUserRole(Meteor.user())
         model.role[r].cats
         
+if Meteor.isServer
+    Meteor.publish("allUsers", () ->
+        Meteor.users.find({},{fields:
+            emails: 1
+            username: 1
+            createdAt: 1
+        })
+    )
         
     

@@ -1,4 +1,5 @@
 model = {}
+model.lang = 'de'
 model.state =
     draft: "draft"
     rejected: "rejected"
@@ -61,6 +62,7 @@ model.editableStates = [model.state.draft, model.state.rejected]
 model.rejectCountDisplayRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 model.workflowRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 
+
 model.defaultUserRoles = (username) ->
     lu: username
     roles: [model.role.visitor.lu, model.role.requestor.lu]
@@ -113,8 +115,8 @@ model.userRoles = (username) ->
         model.cleanupUserRoles(cursor)
         console.log("UserRoles were cleaned!")
         model.userRoles(username)
-    else if cursor.count() == 0
-        model.createUserRoles = (username)
+    else if cursor.count() is 0
+        model.createUserRoles(username)
         model.userRoles(username)
             
     UserRoles.findOne({lu: username})
@@ -264,7 +266,13 @@ if(Meteor.isServer)
                 model.role.decision_maker.lu]
         )
         UserStates.insert(model.defaultUserState("dirk"))
-        
+        Accounts.createUser(
+            username: "marc"
+            email: "marcfeuster@googlemail.com"
+            password: "test"
+        )
+        UserRoles.insert(model.defaultUserRoles("marc"))
+        UserStates.insert(model.defaultUserState("marc"))
 
     insertDummyProposals = ->
         p = model.proposalStub("dirk")
@@ -276,5 +284,5 @@ if(Meteor.isServer)
     cleanupVariableData = ->
         #UserRoles.remove({})
         #UserStates.remove({})
-        Proposals.remove({})
+        #Proposals.remove({})
         #Meteor.users.remove({})
