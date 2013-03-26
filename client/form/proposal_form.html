@@ -20,14 +20,14 @@
         <label class="span1 align-right">
             {{label "authors"}}:
         </label>
-        <div class="span3 editable-content">
+        <div class="span3 fixed-content">
             {{#each authorsList}}
             <span title="{{email}}" class="tipified badge">{{name}}&nbsp;{{#if deletable}}<i class="icon-remove">&times;</i>{{/if}}</span>
             {{/each}}
         </div>
         <div class="span3">
         {{#if isEditing "authors"}}
-            <input type="text" class="search-query s-{{_id}}-authors search-users" placeholder="Username/Email" data-provide="typeahead" data-items="8" style="margin-top: 4px" autofocus="autofocus">
+            <input type="text" class="search-query s-{{_id}}-authors search-users" placeholder="{{label "add_author_placeholder"}}" data-provide="typeahead" data-items="8" style="margin-top: 4px" autofocus="autofocus">
         {{else}}
             <button class="btn btn-small add-author-button" type="button" style="margin-top: 5px"><i class="icon-plus-sign"></i>&nbsp;{{label "invite_author"}}</button>
         {{/if}}
@@ -35,13 +35,13 @@
         <label class="span1 align-right">
             {{label "creator"}}:
         </label>
-        <div class="span1 editable-content">
+        <div class="span1 fixed-content">
             <span class="badge">{{owner}}</span>
         </div>
         <label class="span1 align-right">
-            {{label "lastChangeDate"}}:
+            {{label "last_change_date"}}:
         </label>
-        <div class="span2 editable-content">
+        <div class="span2 fixed-content">
             {{lastChangeDate}}
         </div>
     </div>

@@ -3,6 +3,9 @@ labels =
     not_allowed_to_edit_message: "You don't have the proper rights to edit this!"
     not_allowed_to_add_authors: "You don't have the proper rights to add an author!"
     
+    ambigous_author: "More than one author matched the search string."
+    no_author: "No new author could be found matching the search string."
+    
     double_click_to_edit_notice: "Double click the values to edit them."
     
     state_draft: "Draft"
@@ -41,6 +44,10 @@ labels =
     new_proposal: "New"
     new_proposals_title: "New Proposal"
     
+    sort_by: "Order by:"
+    sort_by_date: "Last Edited"
+    sort_by_title: "Title"
+    
     cancel: "Cancel"
     ok: "OK"
     delete_dialog_title: "Delete a Project Proposal?"
@@ -54,5 +61,6 @@ labels =
     creator: "Creator"
     authors: "Authors"
     invite_author: "Invite"
-    lastChangeDate: "Updated"
+    last_change_date: "Updated"
+    add_author_placeholder: "Username/Email"
     

@@ -18,11 +18,29 @@
 </template>
 
 <template name="category_toolbar">
-    <div class="row-fluid">
-        <div class="span4 aling-left" style="magin-top: 2px">
+    <div class="row-fluid" style="padding-top: 2px">
+        <div class="span4" >
             {{#if createProposals}}
                 <button class="btn btn-create" type="button"><i class="icon-plus-sign"></i>&nbsp;{{label "new_proposal"}}</button>
             {{/if}}
+        </div>
+        <div class="span2 offset4 align-right">
+            <label>{{label "sort_by"}}</label>
+        </div>
+        <div class="span2">
+            <div class="btn-group">
+                <button class="btn dropdown-toggle" data-toggle="drowdown">
+                    {{sortedBy}}
+                    <span class="caret"></span>
+                </button>
+                <button class="btn" type="button">
+                    <i class="icon-arrow-{{sortOrder}}"></i>
+                </button>
+            </div>
+            <ul class="dropdown-menu">
+                <li>{{label "sort_by_date"}}</li>
+                <li>{{label "sort_by_title"}}</li>
+            </ul>
         </div>
     </div>
 </template>

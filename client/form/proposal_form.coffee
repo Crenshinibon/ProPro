@@ -101,6 +101,7 @@ Template.meta.lastChangeDate = ->
     
 Template.meta.authorsList = ->
     owner = this.owner
+    proposalId = this._id
     this.authors.map((e) ->
         email = 'none@none.org'
         if emails = Meteor.users.findOne({username: e}).emails
@@ -108,7 +109,8 @@ Template.meta.authorsList = ->
         
         {name: e
         email: email.address
-        deletable: owner isnt e}
+        deletable: owner isnt e
+        proposalId: proposalId}
     )
 
 #query users only ones.
@@ -139,6 +141,10 @@ findAuthors = (q) ->
     )
     matches
 
+filterAuthors = (proposal, author) ->
+    author.username isnt 'admin' and
+    author.username not in proposal.authors
+
 colorMatchedParts = (input, pattern) ->
     parts = input.split(pattern)
     parts.reduce((s, e) ->
@@ -156,7 +162,7 @@ addAuthor = (proposal, author) ->
 
 Template.meta.rendered = ->
     proposal = this.data
-    $("input.s-#{this.data._id}-authors").typeahead(
+    $("input.s-#{proposal._id}-authors").typeahead(
         source: findAuthors 
         updater: (item) ->
             author = JSON.parse(item)
@@ -166,8 +172,7 @@ Template.meta.rendered = ->
             items.sort (e,o) ->
                 e.username > o.username
         matcher: (item) ->
-            item.username isnt 'admin' and
-            item.username not in proposal.authors
+            filterAuthors(proposal, item)
         highlighter: highlightAuthors
     )
     $('.tipified').tooltip({delay: 800})
@@ -176,16 +181,29 @@ Template.meta.events(
     'click button.add-author-button': (e, t) ->
         if(model.allowedToEdit(Meteor.user(), this))
             model.updateEditState(Meteor.user(), this._id + "authors")
-            refreshMeta(this)
+            refreshMeta()
         else
             showMessage(this, labels.not_allowed_to_add_authors)
     'blur input.search-users':  ->
         model.updateEditState(Meteor.user(), '')
-    'click input.search-users, keypress input.search-users': (e,t)->
-        #console.log(e)
-        #console.log(t)
-    'hover i.icon-remove': (e, t) ->
-        console.log(e)
-        $(e.target).color('black')
+    'keypress input.search-users': (e,t)->
+        if e.which is 13
+            value = e.target.value
+            prop = this
+            matches = findAuthors(value).filter (a) ->
+                filterAuthors(prop, a)
+            if matches.length is 1 
+                addAuthor(this, matches[0])
+                model.updateEditState(Meteor.user(), '')
+            else if matches.length is 0
+                showMessage(prop, labels.no_author)
+            else
+                showMessage(prop, labels.ambigous_author)
+    'mouseenter i.icon-remove': (e, t) ->
+        $(e.target).css('color','grey')
+    'mouseout i.icon-remove': (e, t) ->
+        $(e.target).css('color','white')
+    'click i.icon-remove': (e, t) ->
+        Proposals.update({_id: this.proposalId},{$pull: {authors: this.name}})
 )
     

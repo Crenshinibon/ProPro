@@ -74,6 +74,14 @@ Template.category_toolbar.createProposals = ->
     user = Meteor.user()
     user and this.lu is 'private' and model.currentUserRole(user) is 'requestor'
 
+Template.category_toolbar.sortOrder = ->
+    us = model.userState(Meteor.user())
+    console.log(us)
+    'up'
+    
+Template.category_toolbar.sortedBy = ->
+    labels.sort_by_title
+
 Template.category_toolbar.events = (
     'click button.btn-create': (e, t) ->
         id = model.createProposal(Meteor.user())
