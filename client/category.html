@@ -24,23 +24,28 @@
                 <button class="btn btn-create" type="button"><i class="icon-plus-sign"></i>&nbsp;{{label "new_proposal"}}</button>
             {{/if}}
         </div>
+        {{#if hasProposals}}
+        {{#with proposalOrder}}
         <div class="span2 offset4 align-right">
-            <label>{{label "sort_by"}}</label>
+            <label>{{label "order_by"}}</label>
         </div>
         <div class="span2">
             <div class="btn-group">
-                <button class="btn dropdown-toggle" data-toggle="drowdown">
-                    {{sortedBy}}
+                <button class="btn dropdown-toggle" type="button" data-toggle="dropdown">
+                    {{orderOptionsLabel orderedBy}}
                     <span class="caret"></span>
                 </button>
-                <button class="btn" type="button">
-                    <i class="icon-arrow-{{sortOrder}}"></i>
+                <button class="btn btn-order-dir" type="button">
+                    <i class="icon-arrow-{{orderDirection}}"></i>
                 </button>
+                <ul class="dropdown-menu pull-right">
+                    {{#each orderOptions}}
+                    <li><a tabindex="-1" class="order-by-value" href="#">{{orderOptionsLabel this}}</a></li>
+                    {{/each}}
+                </ul>
             </div>
-            <ul class="dropdown-menu">
-                <li>{{label "sort_by_date"}}</li>
-                <li>{{label "sort_by_title"}}</li>
-            </ul>
         </div>
+        {{/with}}
+        {{/if}}
     </div>
 </template>

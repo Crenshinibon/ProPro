@@ -62,14 +62,80 @@ model.editableStates = [model.state.draft, model.state.rejected]
 model.rejectCountDisplayRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 model.workflowRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
 
-
 model.defaultUserRoles = (username) ->
     lu: username
     roles: [model.role.visitor.lu, model.role.requestor.lu]
     
+model.proposalOrderOpts =
+    lastChangeDate: 'lastChangeDate'
+    title: 'title'
+model.proposalOrderDirections = 
+    down: 'down'
+    up: 'up'
+    
+model.defaultProposalOrder = (category, role) ->
+    cat: category.lu
+    role: if(role.lu) then role.lu else role
+    orderedBy: model.proposalOrderOpts.lastChangeDate
+    orderDirection: model.proposalOrderDirections.down
+
+model.cloneAndAdaptProposalOrder = (currentCatOrder, orderBy, orderDirection) ->
+    cat: currentCatOrder.cat
+    role: currentCatOrder.role
+    orderedBy: orderBy
+    orderDirection: orderDirection
+
+model.toggleProposalOrderDirection = (currentCatOrder, user) ->
+    newDir = model.proposalOrderDirections.down
+    if(currentCatOrder.orderDirection is model.proposalOrderDirections.down)
+        newDir = model.proposalOrderDirections.up
+    newCatOrder = model.cloneAndAdaptProposalOrder(currentCatOrder, currentCatOrder.orderedBy, newDir)
+    model.updateProposalOrder(currentCatOrder, newCatOrder, user)
+    
+model.proposalOrder = (category, user) ->
+    us = model.userState(user)
+    cpo = model.customProposalOrder(category.lu, us)
+    if(cpo)
+        cpo
+    else
+        model.defaultProposalOrder(category, us.selectedRole)
+
+model.changeProposalOrderBy = (currentCatOrder, newValue, user) ->
+    newCatOrder = model.cloneAndAdaptProposalOrder(currentCatOrder, model.proposalOrderOpts[newValue], currentCatOrder.orderDirection)
+    model.updateProposalOrder(currentCatOrder, newCatOrder, user)
+
+
+model.updateProposalOrder = (formerCatOrder, actualCatOrder, user) ->
+    userState = model.userState(user)
+    col = UserStates
+    unless user
+        col = LocalStates
+    
+    unless(userState.changedProposalOrder)
+        col.update({_id: userState._id},{$set: {changedProposalOrder: [actualCatOrder]}})
+    else
+        col.update({_id: userState._id},{$pull: {changedProposalOrder: formerCatOrder}})
+        col.update({_id: userState._id},{$push: {changedProposalOrder: actualCatOrder}})
+    
+
+model.customProposalOrder = (categoryName, userState) ->
+    cpo = [] 
+    if(userState.changedProposalOrder)
+        cpo = userState.changedProposalOrder.filter((e) ->
+            e.cat is categoryName and
+            e.role is userState.selectedRole
+        )
+    if(cpo.length == 1)
+        cpo[0]
+    else if(cpo.length > 1)
+        console.log("Cleaning proposal custom order objects!")
+    else
+        no
+
 model.defaultUserState = (username) ->
     lu: username
     openProposals: []
+    changedProposalOrder: []
     openCategories: [
         {cat: model.category.examination.lu, role: model.role.visitor.lu}
         {cat: model.category.approved.lu, role: model.role.visitor.lu}

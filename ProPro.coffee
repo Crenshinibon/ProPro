@@ -50,5 +50,3 @@ if Meteor.isServer
             createdAt: 1
         })
     )
-        
-    

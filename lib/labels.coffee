@@ -44,9 +44,9 @@ labels =
     new_proposal: "New"
     new_proposals_title: "New Proposal"
     
-    sort_by: "Order by:"
-    sort_by_date: "Last Edited"
-    sort_by_title: "Title"
+    order_by: "Order by:"
+    order_by_lastChangeDate: "Last Edited"
+    order_by_title: "Title"
     
     cancel: "Cancel"
     ok: "OK"

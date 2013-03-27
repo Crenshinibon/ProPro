@@ -29,19 +29,30 @@ checkTimeoutCreated = (proposals) ->
             if(deadline < new Date) 
                 Proposals.update({_id: e._id},{$set: {created: false}})
     )
+
+categorySortSpec = (category, user) ->
+    propOrder = model.proposalOrder(category, user)
+    dir = if propOrder.orderDirection is model.proposalOrderDirections.down then -1 else 1
+    r = {}
+    r[propOrder.orderedBy] = dir
+    r
     
-Template.category.proposals = ->
+
+findProposals = (category, user) ->
     q = 
         public: true
-        state: {$in: this.states}
-    if (Meteor.user() and 
-            model.currentUserRole(Meteor.user()) is "requestor")
-        
-        q.authors = Meteor.user().username
-        if model.category.private is this
+        state: {$in: category.states}
+    if (user and model.currentUserRole(user) is "requestor")
+        q.authors = user.username
+        if model.category.private is category
             q.public = false
-        
-    p = Proposals.find(q).fetch()
+    
+    sorter = categorySortSpec(category, user)
+    console.log(sorter)
+    Proposals.find(q, {sort: sorter}).fetch()
+
+Template.category.proposals = ->
+    p = findProposals(this, Meteor.user())
     checkTimeoutCreated(p)
     p
 
@@ -74,13 +85,17 @@ Template.category_toolbar.createProposals = ->
     user = Meteor.user()
     user and this.lu is 'private' and model.currentUserRole(user) is 'requestor'
 
-Template.category_toolbar.sortOrder = ->
-    us = model.userState(Meteor.user())
-    console.log(us)
-    'up'
+Template.category_toolbar.proposalOrder = ->
+    model.proposalOrder(this, Meteor.user())
+
+Template.category_toolbar.orderOptions = ->
+    e for e of model.proposalOrderOpts
     
-Template.category_toolbar.sortedBy = ->
-    labels.sort_by_title
+Template.category_toolbar.orderOptionsLabel = (option) ->
+    labels["order_by_#{option}"]
+
+Template.category_toolbar.hasProposals = ->
+    findProposals(this, Meteor.user()).length > 0
 
 Template.category_toolbar.events = (
     'click button.btn-create': (e, t) ->
@@ -89,4 +104,9 @@ Template.category_toolbar.events = (
         Meteor.setTimeout(->
                 Proposals.update({_id: id},{$set: {created: false}})
             , model.createdProposalTimeout)
+    'click button.btn-order-dir': (e, t) ->
+        model.toggleProposalOrderDirection(this, Meteor.user())
+    'click a.order-by-value': (e, t) ->
+        currentOrder = model.proposalOrder(t.data, Meteor.user())
+        model.changeProposalOrderBy(currentOrder, this, Meteor.user())
 )
