@@ -1,0 +1,52 @@
+<template name="collections_editor">
+        {{#if empty}}
+            {{#if isEditable}}
+            <div class="collections-editor-area">
+                <button class="btn btn-small add-collection-element">{{label "add_collection_element"}}</button>
+            </div>
+            {{/if}}
+        {{else}}
+        <div class="collections-editor-area">
+            {{#each elements}}
+            {{> element}}
+            {{/each}}
+        </div>
+        {{/if}}
+    </div>
+</template>
+
+<template name="element">
+    <div class="row-fluid">
+    <div class="collections-element {{offset}} {{span}}">
+        <div class="span1">
+            {{#if addable}}
+            <button class="btn btn-mini btn-add-element"><i class="icon-plus-sign"></i></button>
+            {{/if}}
+        </div>
+        <div class="span10">
+            {{> element_editor}}
+        </div>
+        <div class="span1">
+            {{#if divisible}}
+                <a href="#" class="add-child-element"><i class=""></i></button>
+            {{/if}}
+                
+                {{#if moveable}}
+                {{/if}}
+            {{#if expandable}}
+    
+            {{/if}}
+            {{#if deletable}}
+            
+            {{/if}}
+            </div>
+        </div>
+    </div>
+    </div>
+</template>
+
+<template name="element_editor">
+    <div class="collection-element-data">
+        Some Data
+    </div>
+</template>

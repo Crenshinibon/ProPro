@@ -1,13 +1,21 @@
-model = {}
-model.lang = 'de'
-model.state =
+@model = {}
+
+@model.abbreviate = (string, length) ->
+    unless length then length = 50
+    s = string
+    if string.length > length
+        s = string.substring(0,length - 4) + ' ...'
+    s
+    
+@model.lang = 'de'
+@model.state =
     draft: "draft"
     rejected: "rejected"
     examination: "examination"
     declined: "declined"
     approved: "approved"
 
-model.category =
+@model.category =
     examination:
         lu: "examination"
         desc: labels.cat_examination
@@ -29,7 +37,7 @@ model.category =
         desc: labels.cat_declined
         states: [model.state.declined]
 
-model.role =
+@model.role =
     decision_maker: 
         lu: "decision_maker"
         desc: labels.role_decision_maker
@@ -57,42 +65,42 @@ model.role =
         desc: labels.role_admin
         cats: []
     
-model.createdProposalTimeout = 60000
-model.editableStates = [model.state.draft, model.state.rejected]
-model.rejectCountDisplayRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
-model.workflowRoles = [model.role.requestor.lu, model.role.decision_maker.lu]
+@model.createdProposalTimeout = 60000
+@model.editableStates = [@model.state.draft, @model.state.rejected]
+@model.rejectCountDisplayRoles = [@model.role.requestor.lu, @model.role.decision_maker.lu]
+@model.workflowRoles = [@model.role.requestor.lu, @model.role.decision_maker.lu]
 
-model.defaultUserRoles = (username) ->
+@model.defaultUserRoles = (username) ->
     lu: username
     roles: [model.role.visitor.lu, model.role.requestor.lu]
     
-model.proposalOrderOpts =
+@model.proposalOrderOpts =
     lastChangeDate: 'lastChangeDate'
     title: 'title'
-model.proposalOrderDirections = 
+@model.proposalOrderDirections = 
     down: 'down'
     up: 'up'
     
-model.defaultProposalOrder = (category, role) ->
+@model.defaultProposalOrder = (category, role) ->
     cat: category.lu
     role: if(role.lu) then role.lu else role
     orderedBy: model.proposalOrderOpts.lastChangeDate
     orderDirection: model.proposalOrderDirections.down
 
-model.cloneAndAdaptProposalOrder = (currentCatOrder, orderBy, orderDirection) ->
+@model.cloneAndAdaptProposalOrder = (currentCatOrder, orderBy, orderDirection) ->
     cat: currentCatOrder.cat
     role: currentCatOrder.role
     orderedBy: orderBy
     orderDirection: orderDirection
 
-model.toggleProposalOrderDirection = (currentCatOrder, user) ->
+@model.toggleProposalOrderDirection = (currentCatOrder, user) ->
     newDir = model.proposalOrderDirections.down
     if(currentCatOrder.orderDirection is model.proposalOrderDirections.down)
         newDir = model.proposalOrderDirections.up
     newCatOrder = model.cloneAndAdaptProposalOrder(currentCatOrder, currentCatOrder.orderedBy, newDir)
     model.updateProposalOrder(currentCatOrder, newCatOrder, user)
     
-model.proposalOrder = (category, user) ->
+@model.proposalOrder = (category, user) ->
     us = model.userState(user)
     cpo = model.customProposalOrder(category.lu, us)
     if(cpo)
@@ -100,12 +108,12 @@ model.proposalOrder = (category, user) ->
     else
         model.defaultProposalOrder(category, us.selectedRole)
 
-model.changeProposalOrderBy = (currentCatOrder, newValue, user) ->
+@model.changeProposalOrderBy = (currentCatOrder, newValue, user) ->
     newCatOrder = model.cloneAndAdaptProposalOrder(currentCatOrder, model.proposalOrderOpts[newValue], currentCatOrder.orderDirection)
     model.updateProposalOrder(currentCatOrder, newCatOrder, user)
 
 
-model.updateProposalOrder = (formerCatOrder, actualCatOrder, user) ->
+@model.updateProposalOrder = (formerCatOrder, actualCatOrder, user) ->
     userState = model.userState(user)
     col = UserStates
     unless user
@@ -118,7 +126,7 @@ model.updateProposalOrder = (formerCatOrder, actualCatOrder, user) ->
         col.update({_id: userState._id},{$push: {changedProposalOrder: actualCatOrder}})
     
 
-model.customProposalOrder = (categoryName, userState) ->
+@model.customProposalOrder = (categoryName, userState) ->
     cpo = [] 
     if(userState.changedProposalOrder)
         cpo = userState.changedProposalOrder.filter((e) ->
@@ -132,7 +140,7 @@ model.customProposalOrder = (categoryName, userState) ->
     else
         no
 
-model.defaultUserState = (username) ->
+@model.defaultUserState = (username) ->
     lu: username
     openProposals: []
     changedProposalOrder: []
@@ -147,14 +155,19 @@ model.defaultUserState = (username) ->
     editing: ""
     selectedRole: model.role.visitor.lu
     
-model.defaultProjectType = () ->
+@model.defaultProjectType = () ->
     ProjectTypes.find().fetch()[0]
     
-model.createProposal = (creator) ->
+@model.createProposal = (creator) ->
     t = model.proposalStub(creator.username)
     Proposals.insert(t)
     
-model.proposalStub = (username) ->
+@model.deleteProposal = (proposal) ->
+    model.deleteComments(proposal._id)
+    Proposals.remove({_id: proposal._id})
+
+    
+@model.proposalStub = (username) ->
     created: true
     title: labels.new_proposals_title
     type: model.defaultProjectType.lu
@@ -165,17 +178,247 @@ model.proposalStub = (username) ->
     owner: username
     createDate: new Date
     lastChangeDate: new Date
+    
+@model.commentTypes =
+    reject: "reject"
+    decline: "decline"
+    info: "info"
 
-model.cleanupUserRoles = (cursor) ->
+@model.commentStub = (proposalId, username) ->
+    created: true
+    changed: false
+    deleted: false
+    proposal: proposalId
+    type: model.commentTypes.info
+    user: username
+    text: ""
+    newText: ""
+    createDate: new Date
+    lastChangeDate: new Date
+    
+@model.createComment = (proposalId, username, text, commentType) ->
+    s = model.commentStub(proposalId, username)
+    if(commentType)
+        s.type = commentType
+    if(text)
+        s.text = text
+    Comments.insert(s)
+    
+@model.deleteComments = (proposalId) ->
+    c = Comments.find({proposal: proposalId}).fetch()
+    c.forEach (e) ->
+        Comments.remove({_id: c._id})
+
+@model.commentsForUser = (proposalId, username, state, fun) ->
+    q = {}
+    q.proposal = proposalId
+    q.user = username
+    q[state] = true
+    
+    comments = Comments.find(q).fetch()
+    if(fun)
+        comments.forEach (c) ->
+            fun(c)
+    comments
+    
+
+@model.commitCreatedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "created", (c) ->
+        Comments.update({_id: c._id}, {$set: {created: false}})
+    )
+
+@model.discardCreatedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "created", (c) ->
+        Comments.remove({_id: c._id})
+    )  
+
+@model.commitChangedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "changed", (c) ->
+        Comments.update({_id: c._id}, {$set: 
+            changed: false
+            text: c.newText
+            newText: ""
+            })
+        )
+        
+@model.discardChangedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "changed", (c) ->
+        Comments.update({_id: c._id}, {$set: 
+            changed: false
+            newText: ""
+        })
+    )
+
+@model.commitDeletedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "deleted", (c) ->
+        Comments.remove({_id: c._id})
+    )
+
+@model.discardDeletedComments = (proposalId, username) ->
+    model.commentsForUser(proposalId, username, "deleted", (c) ->
+        Comments.update({_id: c._id}, {$set: {deleted: false}})
+    )
+    
+@model.commitCommentUpdates = (proposalId, username) ->
+    model.commitDeletedComments(proposalId, username)
+    model.commitChangedComments(proposalId, username)
+    model.commitCreatedComments(proposalId, username)
+    
+@model.discardCommentUpdates = (proposalId, username) ->
+    model.discardDeletedComments(proposalId, username)
+    model.discardChangedComments(proposalId, username)
+    model.discardCreatedComments(proposalId, username)
+
+@model.updateComment = (commentId, text) ->
+    Comments.update({_id: commentId},{$set: 
+        newText: text
+        changed: true
+        lastChangeDate: new Date
+    })
+    
+@model.deleteComment = (comment) ->
+    Comments.update({_id: comment._id},{$set: {deleted: true}})
+    
+@model.latestComment = (proposalId) ->
+    wc = Comments.find({proposal: proposalId}).fetch()
+    if(wc)
+        wc.sort (e,o) -> 
+            e.lastChangeDate < o.lastChangeDate
+        wc[0]
+    
+@model.commentCount = (proposalId) ->
+    Comments.find({proposal: proposalId}).count()
+
+@model.voteUp = (proposalId, username) ->
+    Votes.insert({proposal: proposalId, user: username, up: true})
+
+@model.voteDown = (proposalId, username) ->
+    Votes.insert({proposal: proposalId, user: username, up: false})
+    
+@model.numberOfVotes = (proposalId, up) ->
+    Votes.find({proposal: proposalId, up: up}).count()
+    
+@model.userHasVoted = (proposalId, username) ->
+    Votes.find({proposal: proposalId, user: username}).count() > 0
+    
+@model.userVote = (proposalId, username) ->
+    v = Votes.find({proposal: proposalId, user: username}).fetch()
+    if(v.length > 0)
+        if(v[0].up)
+            labels.up_vote
+        else
+            labels.down_vote
+            
+
+@model.maxCollectionElementDepth = 6
+
+@model.planCollectionTypes =
+    milestone: 
+        lu: 'milestone'
+        maxDepth: 1
+    activity: 
+        lu: 'activity'
+        maxDepth: 6
+
+@model.collectionsElementStub = (proposalId, type, pos, depth) ->
+    proposal: proposalId
+    deeper: false
+    higher: false
+    up: false
+    down: false
+    addable: true
+    deletable: true
+    data: undefined
+    type: type.lu
+    position: pos
+    depth: depth
+
+@model.collectionElements = (proposalId, type, cond) ->
+    q = {proposal: proposalId, type: type.lu}
+    if cond? then q[p] = cond[p] for p of cond
+    e = CollectionElements.find(q, {sort: {position: 1}}).fetch()
+    console.log(e)
+    e
+    
+@model.moveFollowingCollectionElements = (proposalId, type, pos, down) ->
+    following = model.collectionElements(proposalId, type, {position: {$gte: pos}})
+    dir = (curPos) -> 
+        if down
+            curPos + 1 
+        else 
+            curPos - 1
+    following.forEach (e) ->
+        CollectionElements.update({_id: e._id}, {$set: {position: dir(e.position)}})
+    
+    
+@model.prevCollectionElement = (proposalId, type, pos) ->
+    model.collectionElements(proposalId, type, {position: pos - 1})[0]
+    
+
+@model.collectionChildElements = (proposalId, type, pos, depth) ->
+    result = []
+    following = model.collectionElements(proposalId, type, {position: {$gt: pos}})
+    following.every (e) ->
+        if(e.depth > depth)
+            result.push(e)
+            true
+        else
+            false
+    result
+    
+
+@model.insertElement = (proposalId, type, originElement) ->
+    #simply insert the very first
+    if(model.collectionElements(proposalId, type).length is 0)
+        s = model.collectionsElementStub(proposalId, type, 0, 0)
+        CollectionElements.insert(s)
+    else
+        #find children of the originating Element
+        children = model.collectionChildElements(proposalId, type, originElement.position, originElement.depth)
+        insertPos = originElement.position + 1
+        if(children.length > 0)
+            #move the insertion position behind those children
+            insertPos = originElement.position + children.length
+        
+        s = model.collectionsElementStub(proposalId, type, insertPos, originElement.depth)
+        s.up = true
+        
+        if(originElement.depth is model.maxCollectionElementDepth)
+            s.deeper = true
+        
+        if(originElement.depth > 0)
+            s.higher = true
+        
+        CollectionElements.update({_id: originElement._id},{$set: {down: true}})
+        
+        model.moveFollowingCollectionElements(proposalId, type, insertPos, true)
+        CollectionElements.insert(s)
+    
+@model.removeElement = (element) ->
+    
+    
+@model.moveElementUp = (element) ->
+    
+    
+@model.moveElementDown = (element) ->
+    
+    
+@model.increaseElementDepth = (element) ->
+    
+    
+@model.decreaseElementDepth = (element) ->
+    
+    
+@model.cleanupUserRoles = (cursor) ->
     deleteList = cursor.fetch().map((e) -> e._id)
     deleteList.forEach((e) ->
         UserRoles.remove({_id: e})
     )
     
-model.createUserRoles = (username) ->
+@model.createUserRoles = (username) ->
     UserRoles.insert(model.defaultUserRoles(username))
 
-model.userRoles = (username) ->
+@model.userRoles = (username) ->
     cursor = UserRoles.find({lu: username})
     if cursor.count() > 1
         model.cleanupUserRoles(cursor)
@@ -187,28 +430,28 @@ model.userRoles = (username) ->
             
     UserRoles.findOne({lu: username})
 
-model.currentUserRole = (user) ->
+@model.currentUserRole = (user) ->
     us = model.userState(user)
     us.selectedRole
     
-model.updateCurrentUserRole = (user, lu) ->
+@model.updateCurrentUserRole = (user, lu) ->
     if(user)
         us = model.userState(user)
         UserStates.update({_id: us._id},{$set: {selectedRole: lu}})
 
-model.userRoleExists = (username) ->
+@model.userRoleExists = (username) ->
     UserRoles.find({lu: username}).count() > 0    
 
-model.cleanupUserStates = (cursor) ->
+@model.cleanupUserStates = (cursor) ->
     deleteList = cursor.fetch().map((e) -> e._id)
     deleteList.forEach((e) ->
         UserStates.remove({_id: e})
     )
 
-model.createUserState = (user) ->
+@model.createUserState = (user) ->
     UserStates.insert(model.defaultUserState(user.username))
 
-model.userState = (user) ->
+@model.userState = (user) ->
     if(user)
         cursor = UserStates.find({lu: user.username})
         if cursor.count() > 1
@@ -223,29 +466,29 @@ model.userState = (user) ->
     else
         LocalStates.findOne({lu: "anon"})
         
-model.updateEditState = (user, value) ->
+@model.updateEditState = (user, value) ->
     us = model.userState(user)
     UserStates.update({_id: us._id}, {$set: {editing: value}})
     
-model.allowedToEdit = (user, proposal) ->
+@model.allowedToEdit = (user, proposal) ->
     user and user.username in proposal.authors and 
     proposal.state in model.editableStates and 
     model.currentUserRole(user) is "requestor"
         
-model.closeNotice = (user, notice) ->
+@model.closeNotice = (user, notice) ->
     us = model.userState(user)
     if(user)
-        col = UserStates
+        col = @UserStates
     else
-        col = LocalStates
+        col = @LocalStates
     col.update({_id: us._id}, {$push: {closedNotices: notice}})
     yes
         
-model.hasClosedNotice = (user, notice) ->
+@model.hasClosedNotice = (user, notice) ->
     us = model.userState(user)
     notice in us.closedNotices
     
-model.toggleOpenProposal = (pid, actString) ->
+@model.toggleOpenProposal = (pid, actString) ->
     data = 
         openProposals: pid
     action = {}
@@ -260,23 +503,23 @@ model.toggleOpenProposal = (pid, actString) ->
     
     col.update({_id: us._id}, action)
 
-model.closeProposal = (pid) ->
+@model.closeProposal = (pid) ->
     model.toggleOpenProposal(pid, "$pull")
     
-model.openProposal = (pid) ->
+@model.openProposal = (pid) ->
     model.toggleOpenProposal(pid, "$push")
 
 
 #variable data
-unless UserRoles
-    UserRoles = new Meteor.Collection("userroles")
+unless @UserRoles
+    @UserRoles = new Meteor.Collection("userroles")
 
-unless UserStates
-    UserStates = new Meteor.Collection("userstates")
+unless @UserStates
+    @UserStates = new Meteor.Collection("userstates")
 
-unless LocalStates
-    LocalStates = new Meteor.Collection(null)
-    LocalStates.insert(
+unless @LocalStates
+    @LocalStates = new Meteor.Collection(null)
+    @LocalStates.insert(
         lu: "anon"
         openProposals: []
         openCategories: [{cat: model.category.approved.lu, role: model.role.visitor.lu}]
@@ -285,15 +528,24 @@ unless LocalStates
         selectedRole: model.role.visitor.lu
     )
 
-unless Proposals
-    Proposals = new Meteor.Collection("proposals")
+unless @Proposals
+    @Proposals = new Meteor.Collection("proposals")
 
-unless ProjectTypes
-    ProjectTypes = new Meteor.Collection("projecttypes")
+unless @Comments
+    @Comments = new Meteor.Collection("comments")
+    
+unless @Votes
+    @Votes = new Meteor.Collection("votes")
+
+unless @CollectionElements
+    @CollectionElements = new Meteor.Collection("collectionelements")
+
+unless @ProjectTypes
+    @ProjectTypes = new Meteor.Collection("projecttypes")
 
 if(Meteor.isServer)
     Meteor.startup () -> 
-        initProjectTypes()
+        ref.initProjectTypes()
         
         if(conf.testing)
             cleanupVariableData()
@@ -351,4 +603,5 @@ if(Meteor.isServer)
         #UserRoles.remove({})
         #UserStates.remove({})
         #Proposals.remove({})
+        #Comments.remove({})
         #Meteor.users.remove({})

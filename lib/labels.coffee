@@ -1,4 +1,4 @@
-labels =
+@labels =
     nothing_selected: "None"
     not_allowed_to_edit_message: "You don't have the proper rights to edit this!"
     not_allowed_to_add_authors: "You don't have the proper rights to add an author!"
@@ -27,9 +27,12 @@ labels =
     
     title: "Title"
     project_type: "Project Type"
+    project_goals: "Goals"
+    add_project_goals: "Edit project goals"
+    activities: "Activities"
+    add_collection_element: "Add"
     
-    workflow_info_label_info: "Info"
-    workflow_info_label_warning: "Warning"
+    value_placeholder: "Enter some information!"
     
     approve: "Approve"
     decline: "Decline"
@@ -49,7 +52,10 @@ labels =
     order_by_title: "Title"
     
     cancel: "Cancel"
+    close: "Close"
     ok: "OK"
+    add: "Add"
+    
     delete_dialog_title: "Delete a Project Proposal?"
     delete_dialog_message: "Do you really want to delete the project proposal titled: "
     
@@ -58,9 +64,20 @@ labels =
     rejected_few: "The proposal has been rejected at least twice."
     rejected_many: "The proposal has been rejected more often then five times."
     
+    comment_dialog_title: "Comments"
+    commenter_label: "Author"
+    comment_placeholder: "Enter a comment!"
+    workflow_info_label_add: "Add"
+    workflow_info_label_info: "Info"
+    workflow_info_label_warning: "Warn"
+    no_comments_exist: "Currently, there are no comments!"
+    
+    up_vote: "You voted up"
+    down_vote: "Your thumb points down"
+    
     creator: "Creator"
     authors: "Authors"
     invite_author: "Invite"
     last_change_date: "Updated"
     add_author_placeholder: "Username/Email"
-    
+        

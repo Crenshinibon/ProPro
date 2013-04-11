@@ -85,12 +85,12 @@ Template.project_type.getProjectTypes = ->
 Template.project_type.getActualProjectType = ->
     if(this.type) then getProjectTypeDesc(this.type) else labels.nothing_selected
 
-Template.project_type.isSelectedProjectType = (type, proposal) ->
+Template.project_type.isSelectedProjectType = (proposal) ->
     if(proposal.type)
-        if(proposal.type is type.lu)
+        if(proposal.type is this.lu)
             'selected'
     else
-        if(type.lu is nothing_lu)
+        if(this.lu is nothing_lu)
             'selected'    
             
 Template.project_type.events(editableEventMap('change','select','type',setProjectType))
@@ -206,4 +206,37 @@ Template.meta.events(
     'click i.icon-remove': (e, t) ->
         Proposals.update({_id: this.proposalId},{$pull: {authors: this.name}})
 )
+
+Template.project_goals.goalsExist = () ->
+    this.goals? and this.goals.length
+
+Template.project_goals.goals = () ->
+    new Handlebars.SafeString(this.goals)
+
+Template.project_goals.editorContext = () ->
+    cId = this._id
+    c = 
+        textareaId: cId + "goals"
+        placeholder: labels.value_placeholder
+        text: if this.goals then this.goals else ""
+        events: 
+            change: (value) ->
+                Proposals.update({_id: cId}, {$set: {goals: value}})
+            blur: () ->
+                model.updateEditState(Meteor.user(), '')
+    c
+    
+Template.project_goals.events(
+    "dblclick div.editable-content, click button.btn-goals": (e, t) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        if(model.allowedToEdit(Meteor.user(), this))
+            model.updateEditState(Meteor.user(), this._id + "goals")
+        else
+            showMessage(this, labels.not_allowed_to_edit_message)
+)
+
+Template.activities.elementsEditorContext = () ->
+    proposal: this
+    type: model.planCollectionTypes.activity
     

@@ -48,7 +48,6 @@ findProposals = (category, user) ->
             q.public = false
     
     sorter = categorySortSpec(category, user)
-    console.log(sorter)
     Proposals.find(q, {sort: sorter}).fetch()
 
 Template.category.proposals = ->

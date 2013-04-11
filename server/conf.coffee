@@ -1,4 +1,4 @@
-conf =
+@conf =
     testing: true
     mockdata: true
 
