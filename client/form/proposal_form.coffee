@@ -238,5 +238,5 @@ Template.project_goals.events(
 
 Template.activities.elementsEditorContext = () ->
     proposal: this
-    type: model.planCollectionTypes.activity
+    type: model.collectionTypes.activity
     

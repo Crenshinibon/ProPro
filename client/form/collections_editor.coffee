@@ -46,5 +46,11 @@ Template.element.deeper = () ->
     
 Template.element.events(
     'click button.btn-add-element': () ->
-        model.insertElement(this.proposal, model.planCollectionTypes[this.type], this)
+        model.insertElement(this.proposal, model.collectionTypes[this.type], this)
+    'click button.btn-remove': () ->
+        model.removeElement(this)
+    'click button.btn-up': () ->
+        model.moveElementUp(this)
+    'click button.btn-down': () ->
+        model.moveElementDown(this)
 )

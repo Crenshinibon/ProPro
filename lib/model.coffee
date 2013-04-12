@@ -312,7 +312,7 @@
 
 @model.maxCollectionElementDepth = 6
 
-@model.planCollectionTypes =
+@model.collectionTypes =
     milestone: 
         lu: 'milestone'
         maxDepth: 1
@@ -336,9 +336,7 @@
 @model.collectionElements = (proposalId, type, cond) ->
     q = {proposal: proposalId, type: type.lu}
     if cond? then q[p] = cond[p] for p of cond
-    e = CollectionElements.find(q, {sort: {position: 1}}).fetch()
-    console.log(e)
-    e
+    CollectionElements.find(q, {sort: {position: 1}}).fetch()
     
 @model.moveCollectionElements = (elements, down) ->
     dir = (curPos) -> 
@@ -349,10 +347,16 @@
     elements.forEach (e) ->
         CollectionElements.update({_id: e._id}, {$set: {position: dir(e.position)}})
     
-    
-@model.prevCollectionElement = (proposalId, type, pos) ->
-    model.collectionElements(proposalId, type, {position: pos - 1})[0]
-    
+
+@model.relativeCollectionElement = (element, below) ->
+    dir = (curPos) ->
+        if below
+            curPos + 1
+        else
+            curPos - 1
+    c = {position: dir(element.position),depth: element.depth}
+    model.collectionElements(element.proposal, model.collectionTypes[element.type], c)[0]
+
 
 @model.collectionChildElements = (proposalId, type, pos, depth) ->
     result = []
@@ -370,6 +374,7 @@
     #simply insert the very first
     if(model.collectionElements(proposalId, type).length is 0)
         s = model.collectionsElementStub(proposalId, type, 0, 0)
+        s.data = {name: "First element!"}
         CollectionElements.insert(s)
     else
         #find children of the originating Element
@@ -380,6 +385,7 @@
             insertPos = originElement.position + children.length
         
         s = model.collectionsElementStub(proposalId, type, insertPos, originElement.depth)
+        s.data = {name: "Element number: " + (model.collectionElements(proposalId, type).length + 1)}
         s.up = true
         
         if(originElement.depth < model.maxCollectionElementDepth)
@@ -391,23 +397,78 @@
         #let the origin element be down-moveable
         CollectionElements.update({_id: originElement._id},{$set: {down: true}})
         
-        #if there is a following element allow this one to move down
+        #if there is a following element on the same level, allow this one to
+        #down moveable.
+        next = model.relativeCollectionElement(originElement, true)
+        if(next?)
+            s.down = true
+        
         #move all following down
         following = model.collectionElements(proposalId, type, {position: {$gte: insertPos}})
         if(following.length > 0)
-            s.down = true
             model.moveCollectionElements(following, true)
         
         #insert the created element
         CollectionElements.insert(s)
     
 @model.removeElement = (element) ->
+    CollectionElements.remove({_id: element._id})
+    
+    #move following elements up, if there are any
+    following = model.collectionElements(element.proposal, model.collectionTypes[element.type], {position: {$gt: element.position}})
+    if(following.length > 0)
+        model.moveCollectionElements(following, false)
+        
+        #if the first element was deleted, make a new first
+        if(element.position is 0)
+            CollectionElements.update({_id: following[0]._id},{$set: {deeper: false, up: false}})
+    else
+        #if the last element was deleted, make a new last
+        prev = model.relativeCollectionElement(element, false)
+        if(prev?)
+            CollectionElements.update({_id: prev._id},{$set: {down: false}})
     
     
 @model.moveElementUp = (element) ->
+    prev = model.relativeCollectionElement(element, false)
+    CollectionElements.update({_id: element._id}, 
+        $set: 
+            position: prev.position
+            up: prev.up
+            higher: prev.higher
+            deeper: prev.deeper
+            down: true
+    )
     
+    CollectionElements.update({_id: prev._id},
+        $set: 
+            position: element.position
+            up: true
+            higher: element.higher
+            deeper: element.deeper
+            down: element.down
+    )    
     
 @model.moveElementDown = (element) ->
+    next = model.relativeCollectionElement(element, true)
+    CollectionElements.update({_id: element._id},
+        $set:
+            position: next.position
+            down: next.down
+            higher: next.higher
+            deeper: next.deeper
+            up: true
+            
+    )
+    
+    CollectionElements.update({_id: next._id}
+        $set:
+            position: element.position
+            up: element.up
+            higher: element.higher
+            deeper: element.deeper
+            down: true
+    )
     
     
 @model.increaseElementDepth = (element) ->
@@ -611,4 +672,4 @@ if(Meteor.isServer)
         #UserStates.remove({})
         #Proposals.remove({})
         #Comments.remove({})
-        #Meteor.users.remove({})
+        #Meteor.users.remove({})    
