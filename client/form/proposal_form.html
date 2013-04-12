@@ -62,8 +62,8 @@
 </template>
 
 <template name="title">
-    <label class="span4 align-right">{{label "title"}}:</label>
-    <div class="span8 editable-content">
+    <label class="span2 align-right">{{label "title"}}:</label>
+    <div class="span10 editable-content">
         {{#if isEditing "title"}}
             <input id="{{_id}}-title_input" type="text" class="input-xlarge" autofocus="autofocus" value="{{title}}">
         {{else}}
@@ -73,8 +73,8 @@
 </template>
 
 <template name="project_type">
-    <label class="span4 align-right">{{label "project_type"}}:</label>
-    <div class="span8 editable-content">
+    <label class="span2 align-right">{{label "project_type"}}:</label>
+    <div class="span10 editable-content">
         {{#if isEditing "type"}}
             <select class="input-xlarge" autofocus="autofocus">
                 {{#each getProjectTypes}}
@@ -88,8 +88,8 @@
 </template>
 
 <template name="project_goals">
-    <label class="span4 align-right">{{label "project_goals"}}:</label>
-    <div class="span8 editable-content">
+    <label class="span2 align-right">{{label "project_goals"}}:</label>
+    <div class="span10 editable-content">
         {{#if isEditing "goals"}}
         <div class="container-fluid">
             {{#with editorContext}}
@@ -106,8 +106,8 @@
 </template>
 
 <template name="activities">
-    <label class="span4 align-right">{{label "activities"}}:</label>
-    <div class="span8">
+    <label class="span2 align-right">{{label "activities"}}:</label>
+    <div class="span10">
             {{#with elementsEditorContext}}
             {{> collections_editor}}
             {{/with}}

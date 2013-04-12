@@ -18,28 +18,30 @@
 <template name="element">
     <div class="row-fluid">
     <div class="collections-element {{offset}} {{span}}">
-        <div class="span1">
+        <div class="span2 btn-group">
             {{#if addable}}
             <button class="btn btn-mini btn-add-element"><i class="icon-plus-sign"></i></button>
             {{/if}}
+            {{#if higher}}
+            <button class="btn btn-mini btn-higher"><i class="icon-indent-right"></i></button>
+            {{/if}}
+            {{#if deeper}}
+            <button class="btn btn-mini btn-deeper"><i class="icon-indent-left"></i></button>
+            {{/if}}
         </div>
-        <div class="span10">
+        <div class="span8">
             {{> element_editor}}
         </div>
-        <div class="span1">
-            {{#if divisible}}
-                <a href="#" class="add-child-element"><i class=""></i></button>
+        <div class="span2 align-right btn-group">
+            {{#if up}}
+            <button class="btn btn-mini btn-up"><i class="icon-arrow-up"></i></button>
             {{/if}}
-                
-                {{#if moveable}}
-                {{/if}}
-            {{#if expandable}}
-    
+            {{#if down}}
+            <button class="btn btn-mini btn-down"><i class="icon-arrow-down"></i></button>
             {{/if}}
             {{#if deletable}}
-            
+            <button class="btn btn-mini btn-remove"><i class="icon-remove-sign"></i></button>
             {{/if}}
-            </div>
         </div>
     </div>
     </div>

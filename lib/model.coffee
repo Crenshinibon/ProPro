@@ -340,14 +340,13 @@
     console.log(e)
     e
     
-@model.moveFollowingCollectionElements = (proposalId, type, pos, down) ->
-    following = model.collectionElements(proposalId, type, {position: {$gte: pos}})
+@model.moveCollectionElements = (elements, down) ->
     dir = (curPos) -> 
         if down
             curPos + 1 
         else 
             curPos - 1
-    following.forEach (e) ->
+    elements.forEach (e) ->
         CollectionElements.update({_id: e._id}, {$set: {position: dir(e.position)}})
     
     
@@ -383,15 +382,23 @@
         s = model.collectionsElementStub(proposalId, type, insertPos, originElement.depth)
         s.up = true
         
-        if(originElement.depth is model.maxCollectionElementDepth)
+        if(originElement.depth < model.maxCollectionElementDepth)
             s.deeper = true
         
         if(originElement.depth > 0)
             s.higher = true
         
+        #let the origin element be down-moveable
         CollectionElements.update({_id: originElement._id},{$set: {down: true}})
         
-        model.moveFollowingCollectionElements(proposalId, type, insertPos, true)
+        #if there is a following element allow this one to move down
+        #move all following down
+        following = model.collectionElements(proposalId, type, {position: {$gte: insertPos}})
+        if(following.length > 0)
+            s.down = true
+            model.moveCollectionElements(following, true)
+        
+        #insert the created element
         CollectionElements.insert(s)
     
 @model.removeElement = (element) ->
