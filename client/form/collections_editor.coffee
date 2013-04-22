@@ -53,4 +53,8 @@ Template.element.events(
         model.moveElementUp(this)
     'click button.btn-down': () ->
         model.moveElementDown(this)
+    'click button.btn-deeper': () ->
+        model.increaseElementDepth(this)
+    'click button.btn-higher': () ->
+        model.decreaseElementDepth(this)
 )

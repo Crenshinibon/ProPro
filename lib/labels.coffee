@@ -80,4 +80,6 @@
     invite_author: "Invite"
     last_change_date: "Updated"
     add_author_placeholder: "Username/Email"
-        
+
+    collection_element_dummy_label_first: "First element!"
+    collection_element_dummy_label: "Element number: "

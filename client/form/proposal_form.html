@@ -113,3 +113,13 @@
             {{/with}}
     </div>
 </template>
+
+<template name="element_editor">
+    {{#if isEditing}}
+        <input id="{{_id}}-element-name" type="text" class="span12" autofocus="autofocus" value="{{data.name}}">
+    {{else}}
+        <div class="span12 editable-content">
+            {{data.name}}
+        </div>
+    {{/if}}
+</template>

@@ -338,57 +338,74 @@
     if cond? then q[p] = cond[p] for p of cond
     CollectionElements.find(q, {sort: {position: 1}}).fetch()
     
-@model.moveCollectionElements = (elements, down) ->
-    dir = (curPos) -> 
-        if down
-            curPos + 1 
-        else 
-            curPos - 1
+@model.moveCollectionElements = (elements, steps) ->
     elements.forEach (e) ->
-        CollectionElements.update({_id: e._id}, {$set: {position: dir(e.position)}})
+        CollectionElements.update({_id: e._id}, {$set: {position: e.position + steps}})
     
 
-@model.relativeCollectionElement = (element, below) ->
-    dir = (curPos) ->
+@model.relativeCollectionElement = (element, sameDepth, below) ->
+    c = {}
+    if(sameDepth)
+        if below 
+            c.position = {$gt: element.position} 
+        else 
+            c.position = {$lt: element.position}
+    else
+        c.position = if below then element.position + 1 else element.position - 1
+    
+    elements = model.collectionElements(element.proposal, model.collectionTypes[element.type], c)
+    if sameDepth
+        unless below
+            elements.reverse()
+        res = null
+        elements.every (e) ->
+            if(e.depth is element.depth)
+                res = e
+            e.depth > element.depth
+        res
+    else
         if below
-            curPos + 1
+            elements[0]
         else
-            curPos - 1
-    c = {position: dir(element.position),depth: element.depth}
-    model.collectionElements(element.proposal, model.collectionTypes[element.type], c)[0]
+            elements[elements.length - 1]
 
 
-@model.collectionChildElements = (proposalId, type, pos, depth) ->
+@model.collectionChildElements = (element) ->
     result = []
-    following = model.collectionElements(proposalId, type, {position: {$gt: pos}})
+    following = model.collectionElements(element.proposal, model.collectionTypes[element.type], {position: {$gt: element.position}})
     following.every (e) ->
-        if(e.depth > depth)
+        if(e.depth > element.depth)
             result.push(e)
             true
         else
             false
     result
-    
+
+@model.updateCollectionElement = (element, prop, value) ->
+    u = {}
+    prop = "data.#{prop}"
+    u[prop] = value
+    CollectionElements.update({_id: element._id},{$set: u})
 
 @model.insertElement = (proposalId, type, originElement) ->
     #simply insert the very first
     if(model.collectionElements(proposalId, type).length is 0)
         s = model.collectionsElementStub(proposalId, type, 0, 0)
-        s.data = {name: "First element!"}
+        s.data = {name: labels.collection_element_dummy_label_first}
         CollectionElements.insert(s)
     else
         #find children of the originating Element
-        children = model.collectionChildElements(proposalId, type, originElement.position, originElement.depth)
+        children = model.collectionChildElements(originElement)
         insertPos = originElement.position + 1
         if(children.length > 0)
             #move the insertion position behind those children
-            insertPos = originElement.position + children.length
+            insertPos = originElement.position + children.length + 1
         
         s = model.collectionsElementStub(proposalId, type, insertPos, originElement.depth)
-        s.data = {name: "Element number: " + (model.collectionElements(proposalId, type).length + 1)}
+        s.data = {name: labels.collection_element_dummy_label + (model.collectionElements(proposalId, type).length + 1)}
         s.up = true
         
-        if(originElement.depth < model.maxCollectionElementDepth)
+        if(originElement.depth < type.maxDepth)
             s.deeper = true
         
         if(originElement.depth > 0)
@@ -399,82 +416,221 @@
         
         #if there is a following element on the same level, allow this one to
         #down moveable.
-        next = model.relativeCollectionElement(originElement, true)
+        next = model.relativeCollectionElement(originElement, true, true)
         if(next?)
             s.down = true
         
-        #move all following down
+        #move all following down own step
         following = model.collectionElements(proposalId, type, {position: {$gte: insertPos}})
         if(following.length > 0)
-            model.moveCollectionElements(following, true)
+            model.moveCollectionElements(following, 1)
         
         #insert the created element
         CollectionElements.insert(s)
     
 @model.removeElement = (element) ->
-    CollectionElements.remove({_id: element._id})
+    prev = model.relativeCollectionElement(element, false, false)
+    
+    following = model.collectionElements(element.proposal, model.collectionTypes[element.type], {position: {$gt: element.position}})
+    sameLevelPrev = model.relativeCollectionElement(element, true, false)
+    sameLevelNext = model.relativeCollectionElement(element, true, true)
+    
+    #make a possible parent deletable, if it has no other children
+    if prev? and prev.depth is element.depth - 1
+        unless sameLevelNext
+            CollectionElements.update({_id: prev._id}, {$set: {deletable: true}})
+        
     
     #move following elements up, if there are any
-    following = model.collectionElements(element.proposal, model.collectionTypes[element.type], {position: {$gt: element.position}})
     if(following.length > 0)
-        model.moveCollectionElements(following, false)
+        model.moveCollectionElements(following, -1)
         
-        #if the first element was deleted, make a new first
-        if(element.position is 0)
-            CollectionElements.update({_id: following[0]._id},{$set: {deeper: false, up: false}})
+        #if the first element of that depth was deleted, make a new first
+        if sameLevelNext? and prev.depth is element.depth - 1
+            CollectionElements.update({_id: sameLevelNext._id},
+                $set: {deeper: false, up: false})
     else
         #if the last element was deleted, make a new last
-        prev = model.relativeCollectionElement(element, false)
-        if(prev?)
-            CollectionElements.update({_id: prev._id},{$set: {down: false}})
+        if(sameLevelPrev?)
+            CollectionElements.update({_id: sameLevelPrev._id},{$set: {down: false}})
+    
+    CollectionElements.remove({_id: element._id})
+    
+ 
+@model.switchElements = (down, up) ->
+    #move children
+    downChildren = model.collectionChildElements(down)
+    downChildren.push down
+    
+    upChildren = model.collectionChildElements(up)
+    upChildren.push up
+    
+    model.moveCollectionElements(upChildren, (downChildren.length) * -1)
+    model.moveCollectionElements(downChildren, upChildren.length)
+    
+    CollectionElements.update({_id: down._id}, 
+        $set:
+            up: true
+            higher: up.higher
+            deeper: up.deeper
+            down: up.down
+    )
+    
+    CollectionElements.update({_id: up._id},
+        $set: 
+            up: down.up
+            higher: down.higher
+            deeper: down.deeper
+            down: true
+    )
     
     
 @model.moveElementUp = (element) ->
-    prev = model.relativeCollectionElement(element, false)
-    CollectionElements.update({_id: element._id}, 
-        $set: 
-            position: prev.position
-            up: prev.up
-            higher: prev.higher
-            deeper: prev.deeper
-            down: true
-    )
+    prev = model.relativeCollectionElement(element, true, false)
+    model.switchElements(prev, element)
     
-    CollectionElements.update({_id: prev._id},
-        $set: 
-            position: element.position
-            up: true
-            higher: element.higher
-            deeper: element.deeper
-            down: element.down
-    )    
     
 @model.moveElementDown = (element) ->
-    next = model.relativeCollectionElement(element, true)
+    next = model.relativeCollectionElement(element, true, true)
+    model.switchElements(element, next)
+    
+futureElement = (element, deeper) ->
+    position: element.position
+    proposal: element.proposal
+    type: element.type
+    depth: if deeper then element.depth + 1 else element.depth - 1
+
+@model.increaseElementDepth = (element) ->
+    currentPrev = model.relativeCollectionElement(element, true, false)
+    currentNext = model.relativeCollectionElement(element, true, true)
+    
+    futurePrev = model.relativeCollectionElement(futureElement(element, true), true, false)
+    prevPrevLevel = model.relativeCollectionElement(currentPrev, true, false)
+    
+    children = model.collectionChildElements(element)
+    
+    #currentPrev becomes parent
+    CollectionElements.update({_id: currentPrev._id}, 
+        $set: 
+            deletable: false
+            up: prevPrevLevel?
+            down: currentNext?
+            deeper: prevPrevLevel?
+    )
+    
+    #futurePrev becomes down-movable
+    if futurePrev?
+        CollectionElements.update({_id: futurePrev._id},{$set: {down: true}})
+    
+    ### der nachfolgende Teil muss noch mal überdacht werden ###
+    
+    indentTargetDepth = element.depth + 1
+    #handle the to be indented element
     CollectionElements.update({_id: element._id},
         $set:
-            position: next.position
-            down: next.down
-            higher: next.higher
-            deeper: next.deeper
-            up: true
-            
+            depth: indentTargetDepth
+            deeper: futurePrev? and indentTargetDepth < model.collectionTypes[element.type].maxDepth
+            higher: true
+            up: futurePrev?
+            down: children.length > 0 and indentTargetDepth is model.collectionTypes[element.type].maxDepth
+            deletable: children.length is 0 or indentTargetDepth is model.collectionTypes[element.type].maxDepth
     )
     
-    CollectionElements.update({_id: next._id}
-        $set:
-            position: element.position
-            up: element.up
-            higher: element.higher
-            deeper: element.deeper
-            down: true
-    )
+    #handle the possible child elements, increase depth unless maxdepth reached
+    #collect maxdepth elements and sort out moveability / deletability
+    flocks = {}
+    currentDeepestParent = element
+    flocks[element._id] = []
     
+    children.forEach (c) ->
+        childTargetDepth = c.depth + 1
+        deeper = c.depth < model.collectionTypes[c.type].maxDepth
+        
+        CollectionElements.update({_id: c._id},
+            $set: 
+                depth: if deeper then childTargetDepth else c.depth
+                deeper: if c.deeper then deeper else c.deeper
+        )
+        #collect lowest level elements and group them by parent
+        #in case they are stacked on the lowest level.
+        if childTargetDepth is model.collectionTypes[c.type].maxDepth
+            currentDeepestParent = c
+            flocks[c._id] = [c]
+        else if childTargetDepth > model.collectionTypes[c.type].maxDepth
+            flocks[currentDeepestParent._id].push c
     
-@model.increaseElementDepth = (element) ->
-    
+    for pId of flocks 
+        do (pId) ->
+            elements = flocks[pId] 
+            for e, index in elements 
+                do (e, index) ->
+                    CollectionElements.update({_id: e._id},
+                        $set:
+                            up: index > 0 or indentTargetDepth is model.collectionTypes[e.type].maxDepth
+                            deletable: true
+                            down: (index + 1) < elements.length
+                    )
     
 @model.decreaseElementDepth = (element) ->
+    f = futureElement(element, false)
+    children = model.collectionChildElements(element)
+    ids = (c._id for c in children)
+    ids.push element._id
+    
+    currentParent = model.relativeCollectionElement(f, true, false)
+    #should always at least contain the to-outdent-element, so filter it out
+    formerSiblings = model.collectionChildElements(currentParent).filter (e) ->
+        e._id not in ids
+    
+    toMoveUpSiblings = formerSiblings.filter (e) ->
+        e.position > element.position
+    
+    prev = model.relativeCollectionElement(element, true, false)
+    next = model.relativeCollectionElement(element, true, true)
+    
+    futureNext = model.relativeCollectionElement(f, true, true)
+    
+    #handle current parent element - make it down moveable
+    # and deletable if there are no children left
+    CollectionElements.update({_id: currentParent._id},
+        $set: 
+            deletable: formerSiblings.length is 0
+            down: true
+    )
+    #handle prev same level if exists - deny downmoveability if there are no 
+    #following elements left.
+    if(prev? and toMoveUpSiblings.length is 0)
+        CollectionElements.update({_id: prev._id},$set: {down: false})
+    
+    if(next? and not prev?)
+        CollectionElements.update({_id: next._id},$set: {up: false, deeper: false})
+    
+    #handle toMoveUpSiblings
+    model.moveCollectionElements(toMoveUpSiblings, (1 + (children.length)) * -1)
+    
+    #handle the to be outdented element
+    CollectionElements.update({_id: element._id},
+        $set:
+            depth: element.depth - 1
+            down: futureNext?
+            up: true
+            deeper: true
+            higher: element.depth isnt 1
+            position: element.position + toMoveUpSiblings.length
+    )
+    
+    #handle children - move them down if necessary
+    if toMoveUpSiblings.length isnt 0
+        model.moveCollectionElements(children, toMoveUpSiblings.length)
+    #decrease depth 
+    prevChild = element
+    children.forEach (e) ->
+        CollectionElements.update({_id: e._id},
+            $set: 
+                depth: e.depth - 1
+                deeper: prevChild.depth is e.depth
+        )
+        prevChild = e
     
     
 @model.cleanupUserRoles = (cursor) ->

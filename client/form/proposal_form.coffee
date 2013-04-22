@@ -239,4 +239,35 @@ Template.project_goals.events(
 Template.activities.elementsEditorContext = () ->
     proposal: this
     type: model.collectionTypes.activity
+
+Template.element_editor.isEditing = () ->
+    Meteor.user() and model.userState(Meteor.user()).editing is this._id
+    
+Template.element_editor.isAllowedToEdit = () ->
+    p = Proposals.findOne({_id: this.proposal})
+    model.allowedToEdit(Meteor.user(), p)
+    
+Template.element_editor.events(
+    'dblclick div.editable-content': (e, t) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        p = Proposals.findOne({_id: this.proposal})
+        u = Meteor.user()
+        if u and p and model.allowedToEdit(u, p)
+            us = model.userState(u)
+            UserStates.update({_id: us._id}, {$set: {editing: this._id}})
+        else
+            showMessage(this, labels.not_allowed_to_edit_message)
+    'keyup input': (e, t) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        Proposals.update({_id: this.proposal},{$set: {lastChangeDate: new Date}})
+        model.updateCollectionElement(this, "name", e.target.value)
+    'blur input': (e, t) ->
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        model.updateEditState(Meteor.user(), '')
+)
+Template.element_editor.events(blurOnEnter())
+
     
