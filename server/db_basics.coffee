@@ -9,7 +9,7 @@ unless conf.mockdata
             server: conf.db_server
             userName: conf.db_user
             password: conf.db_password
-    @tedious = Npm.require('tedious')
+    
     @Future = Npm.require('fibers/future')
 
     @getConnection = ->
