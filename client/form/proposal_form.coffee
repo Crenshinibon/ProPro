@@ -36,6 +36,7 @@ hideMessageBlock = ->
 
 nothing_lu = 'nothing_selected'
 
+
 ###Proposal form###
 Template.proposal_form.showDblClickNotice = () ->
     user = Meteor.user()
@@ -270,4 +271,5 @@ Template.element_editor.events(
 )
 Template.element_editor.events(blurOnEnter())
 
-    
+
+

@@ -144,8 +144,10 @@ Template.proposal_buttons.events(
         Proposals.update({_id: this._id},{$set: {state: model.state.approved}})
     'click button.btn-delete': (e, t) ->
         $("#delete-#{this._id}-Dialog").modal('show')
+    'click button.btn-print': (e, t) ->
+        pdf.generatePdf(this)
 )
-        
+
 Template.delete_dialog.title = ->
     labels.delete_dialog_title
     
