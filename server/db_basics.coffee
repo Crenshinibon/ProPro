@@ -1,22 +1,16 @@
-getConnection = ->
-    undefined
-    
-databaseConf = undefined
-
 unless conf.mockdata
     if conf.testing
-        databaseConf =
+        @databaseConf =
             server: conf.db_test_server
             userName: conf.db_test_user
             password: conf.db_test_password
     else
-        databaseConf =
+        @databaseConf =
             server: conf.db_server
             userName: conf.db_user
             password: conf.db_password
+    @tedious = Npm.require('tedious')
+    @Future = Npm.require('fibers/future')
 
-    tedious = __meteor_bootstrap__.require("tedious")
-    Future = __meteor_bootstrap__.require("fibers/future")
-
-    getConnection = ->
+    @getConnection = ->
         new tedious.Connection(databaseConf)
