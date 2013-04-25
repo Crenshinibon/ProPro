@@ -1,6 +1,6 @@
 @conf =
     testing: true
-    mockdata: false
+    mockdata: true
 
     #database connection conf
     db_test_server: "wiv100a041"

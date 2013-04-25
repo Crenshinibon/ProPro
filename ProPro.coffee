@@ -42,6 +42,13 @@ if Meteor.isClient
         r = model.currentUserRole(Meteor.user())
         model.role[r].cats
         
+        
+    Template.search.events(
+        'keyup input': (e,t) ->
+            r = Search(e.target.value)
+            console.log(r)
+    )
+        
 if Meteor.isServer
     Meteor.publish("allUsers", () ->
         Meteor.users.find({},{fields:
