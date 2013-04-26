@@ -753,7 +753,7 @@ unless @LocalStates
     )
 
 unless @Proposals
-    @Proposals = new Meteor.Collection("proposals")
+    @Proposals = new Meteor.Collection("proposals")    
 
 unless @Comments
     @Comments = new Meteor.Collection("comments")

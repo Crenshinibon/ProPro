@@ -57,4 +57,11 @@ if Meteor.isServer
             createdAt: 1
         })
     )
-    
+
+    SearchConf.makeSearchable(
+        collection: Proposals
+        fields: [
+            ['title'],
+            ['goals']
+        ]
+    )
